@@ -6,7 +6,7 @@ export type ChildStatus =
   | 'مريض'
   | 'الهاتف خطأ'
   | 'الهاتف غير متاح'
-  | 'غير متاح'
+  | 'الهاتف مغلق'
   | 'رفض'
   | 'منزل مغلق'
   | 'تم التحويل الى اقرب وحدة'
@@ -20,7 +20,7 @@ export const STATUS_OPTIONS: ChildStatus[] = [
   'مريض',
   'الهاتف خطأ',
   'الهاتف غير متاح',
-  'غير متاح',
+  'الهاتف مغلق',
   'رفض',
   'منزل مغلق',
   'تم التحويل الى اقرب وحدة',
@@ -38,7 +38,7 @@ export const STATUS_CONFIG: Record<ChildStatus, { label: string; color: string; 
   'منزل مغلق': { label: 'منزل مغلق', color: 'text-amber-800', bgColor: 'bg-amber-100' },
   'الهاتف خطأ': { label: 'الهاتف خطأ', color: 'text-gray-700', bgColor: 'bg-gray-100' },
   'الهاتف غير متاح': { label: 'الهاتف غير متاح', color: 'text-gray-700', bgColor: 'bg-gray-100' },
-  'غير متاح': { label: 'غير متاح', color: 'text-slate-700', bgColor: 'bg-slate-100' },
+  'الهاتف مغلق': { label: 'الهاتف مغلق', color: 'text-slate-700', bgColor: 'bg-slate-100' },
   'تم التحويل الى اقرب وحدة': { label: 'تم التحويل الى اقرب وحدة', color: 'text-teal-700', bgColor: 'bg-teal-100' },
 };
 

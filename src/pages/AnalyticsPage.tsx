@@ -49,7 +49,7 @@ const STATUS_COLORS: Record<string, string> = {
   'الهاتف غير متاح': '#9ca3af',
   'الهاتف خطأ': '#6b7280',
   'منزل مغلق': '#d97706',
-  'غير متاح': '#94a3b8',
+  'الهاتف مغلق': '#94a3b8',
 };
 
 function getPerformanceRating(completion: number): { label: string; color: string; icon: string } {

@@ -52,6 +52,7 @@ export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [unitFilter, setUnitFilter] = useState('');
+  const [doseFilter, setDoseFilter] = useState('');
   const [editingChild, setEditingChild] = useState<DelayedChild | null>(null);
   const [selectedChild, setSelectedChild] = useState<DelayedChild | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -104,6 +105,7 @@ export default function AdminDashboard() {
     return children.filter((child) => {
       const matchesStatus = !statusFilter || child.status === statusFilter;
       const matchesUnit = !unitFilter || child.unit?.unit_name === unitFilter;
+      const matchesDose = !doseFilter || child.dose === doseFilter;
       const q = searchQuery.trim().toLowerCase();
       const matchesSearch =
         !q ||
@@ -116,9 +118,15 @@ export default function AdminDashboard() {
         child.dose?.toLowerCase().includes(q) ||
         child.unit?.unit_name?.toLowerCase().includes(q);
 
-      return matchesStatus && matchesUnit && matchesSearch;
+      return matchesStatus && matchesUnit && matchesDose && matchesSearch;
     });
-  }, [children, searchQuery, statusFilter, unitFilter]);
+  }, [children, searchQuery, statusFilter, unitFilter, doseFilter]);
+
+  const availableDoses = useMemo(() => {
+    const doses = new Set<string>();
+    children.forEach((c) => { if (c.dose) doses.add(c.dose); });
+    return Array.from(doses).sort();
+  }, [children]);
 
   const handleExport = () => {
     const exportData = filteredChildren.map((child) => ({
@@ -341,6 +349,9 @@ export default function AdminDashboard() {
           unitFilter={unitFilter}
           onUnitChange={setUnitFilter}
           units={units.map((u) => u.unit_name)}
+          doseFilter={doseFilter}
+          onDoseChange={setDoseFilter}
+          doses={availableDoses}
         />
         <ChildrenTable
           children={filteredChildren}

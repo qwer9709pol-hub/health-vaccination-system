@@ -1,4 +1,4 @@
-import { Search, Filter } from 'lucide-react';
+import { Search, Filter, Droplet } from 'lucide-react';
 import { STATUS_OPTIONS, STATUS_CONFIG } from '../types';
 
 interface SearchFilterProps {
@@ -9,6 +9,9 @@ interface SearchFilterProps {
   unitFilter?: string;
   onUnitChange?: (unit: string) => void;
   units?: string[];
+  doseFilter?: string;
+  onDoseChange?: (dose: string) => void;
+  doses?: string[];
 }
 
 const allStatuses = [
@@ -24,6 +27,9 @@ export default function SearchFilter({
   unitFilter,
   onUnitChange,
   units,
+  doseFilter,
+  onDoseChange,
+  doses,
 }: SearchFilterProps) {
   const selectedStatus = allStatuses.find((s) => s.value === statusFilter);
   const statusColor = selectedStatus?.value
@@ -61,6 +67,24 @@ export default function SearchFilter({
           ))}
         </select>
       </div>
+
+      {doses && onDoseChange && (
+        <div className="relative">
+          <Droplet className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <select
+            value={doseFilter ?? ''}
+            onChange={(e) => onDoseChange(e.target.value)}
+            className="pr-10 pl-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white min-w-[150px] cursor-pointer"
+          >
+            <option value="">كل الجرعات</option>
+            {doses.map((dose) => (
+              <option key={dose} value={dose}>
+                {dose}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {units && onUnitChange && (
         <div className="relative">

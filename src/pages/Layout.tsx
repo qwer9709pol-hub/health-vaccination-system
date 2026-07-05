@@ -1,5 +1,5 @@
 import React from 'react';
-import { LogOut, Bell, Shield, User, Building2, BarChart3, FileSpreadsheet, LayoutDashboard, Moon, Sun } from 'lucide-react';
+import { LogOut, Bell, Shield, User, Building2, BarChart3, FileSpreadsheet, LayoutDashboard, Moon, Sun, PlusCircle } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
@@ -27,6 +27,7 @@ export default function Layout({
     { id: 'dashboard', label: 'لوحة التحكم', icon: LayoutDashboard },
     { id: 'analytics', label: 'التحليلات', icon: BarChart3 },
     { id: 'import', label: 'رفع ملف', icon: FileSpreadsheet },
+    { id: 'units', label: 'الوحدات', icon: Building2 },
   ];
 
   const unitTabs = [

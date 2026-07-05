@@ -6,6 +6,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import UnitDashboard from './pages/UnitDashboard';
 import ExcelImportPage from './pages/ExcelImportPage';
 import AnalyticsPage from './pages/AnalyticsPage';
+import UnitsManagementPage from './pages/UnitsManagementPage';
 import NotificationPanel from './components/NotificationPanel';
 import { Notification } from './types';
 import { fetchNotifications, markNotificationRead } from './api/data';
@@ -57,6 +58,8 @@ function DashboardContent({ onLogout }: { onLogout: () => void }) {
           return <ExcelImportPage />;
         case 'analytics':
           return <AnalyticsPage />;
+        case 'units':
+          return <UnitsManagementPage />;
         default:
           return <AdminDashboard />;
       }
