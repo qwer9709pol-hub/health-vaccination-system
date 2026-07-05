@@ -240,3 +240,11 @@ export async function addFollowUpHistory(
 
   if (error) throw error;
 }
+
+export async function deleteChild(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('delayed_children')
+    .delete()
+    .eq('id', id);
+  if (error) throw error;
+}

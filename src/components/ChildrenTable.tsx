@@ -1,5 +1,5 @@
 import React from 'react';
-import { Edit2, Check, X, Clock, Home, Plane, UserX, HelpCircle, Heart, PhoneOff, ShieldCheck, ArrowRight, XCircle } from 'lucide-react';
+import { Edit2, Check, X, Clock, Home, Plane, UserX, HelpCircle, Heart, PhoneOff, ShieldCheck, ArrowRight, XCircle, Trash2 } from 'lucide-react';
 import { DelayedChild, STATUS_CONFIG, ChildStatus } from '../types';
 
 interface ChildrenTableProps {
@@ -8,6 +8,7 @@ interface ChildrenTableProps {
   showUnit?: boolean;
   onEdit: (child: DelayedChild) => void;
   onView?: (child: DelayedChild) => void;
+  onDelete?: (child: DelayedChild) => void;
 }
 
 const statusIcons: Record<ChildStatus, React.ReactNode> = {
@@ -30,6 +31,7 @@ export default function ChildrenTable({
   showUnit = false,
   onEdit,
   onView,
+  onDelete,
 }: ChildrenTableProps) {
   if (loading) {
     return (
@@ -168,12 +170,24 @@ export default function ChildrenTable({
                   <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{child.vaccination_date || '-'}</td>
                   <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 max-w-xs truncate">{child.follow_up_notes || '-'}</td>
                   <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => onEdit(child)}
-                      className="inline-flex items-center justify-center p-2 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-lg transition-colors"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center justify-center gap-1">
+                      <button
+                        onClick={() => onEdit(child)}
+                        className="inline-flex items-center justify-center p-2 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-lg transition-colors"
+                        title="تعديل"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      {onDelete && (
+                        <button
+                          onClick={() => onDelete(child)}
+                          className="inline-flex items-center justify-center p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                          title="حذف"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               );

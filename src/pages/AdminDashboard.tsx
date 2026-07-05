@@ -11,6 +11,7 @@ import {
   fetchChildren,
   fetchUnits,
   updateChild,
+  deleteChild,
   calculateKPIs,
   calculateUnitStats,
 } from '../api/data';
@@ -99,6 +100,17 @@ export default function AdminDashboard() {
   const handleSaveChild = async (id: string, updates: Partial<DelayedChild>) => {
     await updateChild(id, updates);
     await loadData();
+  };
+
+  const handleDeleteChild = async (child: DelayedChild) => {
+    if (!confirm(`هل أنت متأكد من حذف الطفل "${child.child_name}"؟`)) return;
+    try {
+      await deleteChild(child.id);
+      await loadData();
+    } catch (error) {
+      console.error('Error deleting child:', error);
+      alert('حدث خطأ أثناء الحذف');
+    }
   };
 
   const filteredChildren = useMemo(() => {
@@ -362,6 +374,7 @@ export default function AdminDashboard() {
             setSelectedChild(child);
             setProfileOpen(true);
           }}
+          onDelete={handleDeleteChild}
         />
       </div>
 
