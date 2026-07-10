@@ -148,7 +148,8 @@ export default function ExcelImportPage() {
 
       const toInsert: any[] = [];
       const toUpdate: any[] = [];
-
+// عدد الأطفال الجدد لكل وحدة
+const unitNotifications = new Map<string, number>();
       const digitsOnly = (v: string) => v.replace(/\D/g, '');
       const nowIso = new Date().toISOString();
 
@@ -262,8 +263,16 @@ export default function ExcelImportPage() {
 
           const existingId = existingByReg.get(registrationNumber);
           if (existingId) {
-            toUpdate.push({ id: existingId, ...childData });
-            updatedRecords++;
+toInsert.push({ ...childData, created_at: nowIso });
+
+newRecords++;
+
+if (unitId) {
+  unitNotifications.set(
+    unitId,
+    (unitNotifications.get(unitId) || 0) + 1
+  );
+}
           } else {
             toInsert.push({ ...childData, created_at: nowIso });
             newRecords++;
