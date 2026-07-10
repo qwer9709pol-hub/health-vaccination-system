@@ -141,7 +141,7 @@ export default function ChildrenTable({
                     {child.phone_number ? (
                       <div className="flex items-center gap-2">
                         <a href={`tel:${child.phone_number}`} title="اتصال" className="text-blue-600 dark:text-blue-400 hover:text-blue-800">📞</a>
-                        <a href={`https://wa.me/2${child.phone_number.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer" title="واتساب" className="text-green-600 dark:text-green-400 hover:text-green-800">💬</a>
+                        <a href={`https://wa.me/2${child.phone_number.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer" title="واتساب" className="text-green-600 dark:text-green-400 hover:text-green-800">🟢</a>
                         <span className="text-gray-900 dark:text-white">{child.phone_number}</span>
                       </div>
                     ) : '-'}
@@ -150,7 +150,7 @@ export default function ChildrenTable({
                     {child.reporter_phone ? (
                       <div className="flex items-center gap-2">
                         <a href={`tel:${child.reporter_phone}`} title="اتصال" className="text-blue-600 dark:text-blue-400 hover:text-blue-800">📞</a>
-                        <a href={`https://wa.me/2${child.reporter_phone.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer" title="واتساب" className="text-green-600 dark:text-green-400 hover:text-green-800">💬</a>
+                        <a href={`https://wa.me/2${child.reporter_phone.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer" title="واتساب" className="text-green-600 dark:text-green-400 hover:text-green-800">🟢</a>
                         <span className="text-gray-900 dark:text-white">{child.reporter_phone}</span>
                       </div>
                     ) : '-'}
