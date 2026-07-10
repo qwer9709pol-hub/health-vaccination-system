@@ -290,7 +290,26 @@ if (unitId) {
           errors.push(`خطأ في إضافة السجلات الجديدة: ${error.message}`);
         }
       }
+// إنشاء إشعار لكل وحدة تمت إضافة أطفال لها
+if (unitNotifications.size > 0) {
+  const notifications = Array.from(unitNotifications.entries()).map(
+    ([unitId, count]) => ({
+      unit_id: unitId,
+      title: "تم إضافة أطفال جدد",
+      message: `لديك ${count} طفلًا جديدًا تمت إضافتهم اليوم ويحتاجون للمتابعة.`,
+      is_read: false,
+      created_at: nowIso,
+    })
+  );
 
+  const { error: notificationError } = await supabase
+    .from("notifications")
+    .insert(notifications);
+
+  if (notificationError) {
+    console.error("Notification Error:", notificationError);
+  }
+}
       if (toUpdate.length > 0) {
         const { error } = await supabase
           .from('delayed_children')
