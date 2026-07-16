@@ -9,6 +9,8 @@ interface ChildrenTableProps {
   onEdit: (child: DelayedChild) => void;
   onView?: (child: DelayedChild) => void;
   onDelete?: (child: DelayedChild) => void;
+
+  isAdmin?: boolean;
 }
 
 const statusIcons: Record<ChildStatus, React.ReactNode> = {
@@ -32,6 +34,7 @@ export default function ChildrenTable({
   onEdit,
   onView,
   onDelete,
+  isAdmin = false,
 }: ChildrenTableProps) {
   if (loading) {
     return (
@@ -178,7 +181,7 @@ export default function ChildrenTable({
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
-                      {onDelete && (
+                     {isAdmin && onDelete && (
                         <button
                           onClick={() => onDelete(child)}
                           className="inline-flex items-center justify-center p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
