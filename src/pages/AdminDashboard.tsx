@@ -374,6 +374,15 @@ const handleDeleteUnitChildren = async () => {
 
       <div className="space-y-4">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white">قائمة الأطفال المتخلفين</h2>
+        <div className="flex justify-end mb-3">
+  <button
+    onClick={handleDeleteUnitChildren}
+    disabled={!unitFilter}
+    className="bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg font-medium transition"
+  >
+    حذف أطفال هذه الوحدة
+  </button>
+</div>
         <SearchFilter
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
