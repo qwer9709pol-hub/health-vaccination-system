@@ -1,5 +1,13 @@
 import { supabase } from '../lib/supabase';
 import { DelayedChild, Unit, KPIs, UnitStats, Notification, ChildStatus } from '../types';
+export async function deleteChildrenByUnit(unitName: string) {
+  const { error } = await supabase
+    .from('delayed_children')
+    .delete()
+    .eq('unit_code', unitName);
+
+  if (error) throw error;
+}
 
 export async function fetchChildren(unitId?: string): Promise<DelayedChild[]> {
   let query = supabase
