@@ -12,6 +12,7 @@ import {
   fetchUnits,
   updateChild,
   deleteChild,
+  deleteChildrenByUnit,
   calculateKPIs,
   calculateUnitStats,
 } from '../api/data';
@@ -101,7 +102,27 @@ export default function AdminDashboard() {
     await updateChild(id, updates);
     await loadData();
   };
+const handleDeleteUnitChildren = async () => {
+  if (!unitFilter) {
+    alert('اختر الوحدة أولاً');
+    return;
+  }
 
+  const confirmDelete = window.confirm(
+    `هل أنت متأكد من حذف جميع أطفال وحدة "${unitFilter}"؟\n\nلا يمكن التراجع عن هذه العملية.`
+  );
+
+  if (!confirmDelete) return;
+
+  try {
+    await deleteChildrenByUnit(unitFilter);
+    await loadData();
+    alert('تم حذف جميع أطفال الوحدة بنجاح');
+  } catch (error) {
+    console.error(error);
+    alert('حدث خطأ أثناء الحذف');
+  }
+};
   const handleDeleteChild = async (child: DelayedChild) => {
     if (!confirm(`هل أنت متأكد من حذف الطفل "${child.child_name}"؟`)) return;
     try {
