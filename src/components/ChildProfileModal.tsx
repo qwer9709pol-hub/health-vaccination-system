@@ -13,7 +13,7 @@ export default function ChildProfileModal({ child, isOpen, onClose }: ChildProfi
   return (
     <div className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50 flex justify-center items-center p-4">
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-5xl max-h-[95vh] overflow-y-auto transition-colors duration-300" dir="rtl">
-        <div className="flex items-center justify-between border-b dark:border-gray-700 p-5">
+        <div className="flex items-center justify-between border-b dark:border-gray-700 p-5 sticky top-0 bg-white dark:bg-gray-800 z-10">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">بطاقة بيانات الطفل</h2>
           <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
             <X className="w-6 h-6 text-gray-700 dark:text-gray-300" />

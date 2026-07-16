@@ -70,8 +70,8 @@ export default function BulkDeleteModal({ isOpen, onClose, onDeleted, units, dos
 
   return (
     <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg" dir="rtl">
-        <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col" dir="rtl">
+        <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4 flex items-center justify-between rounded-t-2xl flex-shrink-0">
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <Trash2 className="w-6 h-6" />
             حذف جماعي للأطفال
@@ -81,7 +81,7 @@ export default function BulkDeleteModal({ isOpen, onClose, onDeleted, units, dos
           </button>
         </div>
 
-        <div className="p-6 space-y-5">
+        <div className="p-6 space-y-5 overflow-y-auto flex-1">
           <div className="flex items-start gap-3 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
             <AlertTriangle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
             <div>
@@ -140,17 +140,17 @@ export default function BulkDeleteModal({ isOpen, onClose, onDeleted, units, dos
               {doses.map((dose) => (<option key={dose} value={dose}>{dose}</option>))}
             </select>
           </div>
+        </div>
 
-          <div className="flex gap-3 pt-2">
-            <button onClick={handleDelete} disabled={loading || result !== null}
-              className="flex-1 flex items-center justify-center gap-2 bg-red-600 text-white py-3 rounded-lg font-medium hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg">
-              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Trash2 className="w-5 h-5" /><span>حذف</span></>}
-            </button>
-            <button onClick={handleClose}
-              className="px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-              إغلاق
-            </button>
-          </div>
+        <div className="px-6 py-4 border-t dark:border-gray-700 flex gap-3 flex-shrink-0 bg-white dark:bg-gray-800 rounded-b-2xl">
+          <button onClick={handleDelete} disabled={loading || result !== null}
+            className="flex-1 flex items-center justify-center gap-2 bg-red-600 text-white py-3 rounded-lg font-medium hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg">
+            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Trash2 className="w-5 h-5" /><span>حذف</span></>}
+          </button>
+          <button onClick={handleClose}
+            className="px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+            إغلاق
+          </button>
         </div>
       </div>
     </div>

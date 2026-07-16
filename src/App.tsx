@@ -13,11 +13,7 @@ import { fetchNotifications, markNotificationRead } from './api/data';
 
 function DashboardContent({ onLogout }: { onLogout: () => void }) {
   const { user, logout } = useAuth();
-
-  const handleLogout = () => {
-    logout();
-    onLogout();
-  };
+  const handleLogout = () => { logout(); onLogout(); };
   const [activeTab, setActiveTab] = useState('dashboard');
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -33,11 +29,8 @@ function DashboardContent({ onLogout }: { onLogout: () => void }) {
     try {
       const data = await fetchNotifications(unitId);
       setNotifications(data);
-    } catch (error) {
-      console.error('Error loading notifications:', error);
-    } finally {
-      setNotificationsLoading(false);
-    }
+    } catch (error) { console.error('Error loading notifications:', error); }
+    finally { setNotificationsLoading(false); }
   };
 
   const handleMarkNotificationRead = async (id: string) => {
@@ -60,42 +53,23 @@ function DashboardContent({ onLogout }: { onLogout: () => void }) {
   };
 
   return (
-    <Layout
-      activeTab={activeTab}
-      onTabChange={setActiveTab}
-      notificationCount={unreadCount}
-      onNotificationClick={() => setNotificationsOpen(true)}
-      onLogout={handleLogout}
-    >
+    <Layout activeTab={activeTab} onTabChange={setActiveTab} notificationCount={unreadCount}
+      onNotificationClick={() => setNotificationsOpen(true)} onLogout={handleLogout}>
       {renderContent()}
-      <NotificationPanel
-        isOpen={notificationsOpen}
-        onClose={() => setNotificationsOpen(false)}
-        notifications={notifications}
-        loading={notificationsLoading}
-        onMarkRead={handleMarkNotificationRead}
-      />
+      <NotificationPanel isOpen={notificationsOpen} onClose={() => setNotificationsOpen(false)}
+        notifications={notifications} loading={notificationsLoading} onMarkRead={handleMarkNotificationRead} />
     </Layout>
   );
 }
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  useEffect(() => {
-    const stored = localStorage.getItem('vaccination_user');
-    if (stored) setIsAuthenticated(true);
-  }, []);
-
+  useEffect(() => { if (localStorage.getItem('vaccination_user')) setIsAuthenticated(true); }, []);
   const handleLogin = () => setIsAuthenticated(true);
 
   return (
     <AuthProvider>
-      {isAuthenticated ? (
-        <DashboardContent onLogout={() => setIsAuthenticated(false)} />
-      ) : (
-        <LoginPage onLogin={handleLogin} />
-      )}
+      {isAuthenticated ? <DashboardContent onLogout={() => setIsAuthenticated(false)} /> : <LoginPage onLogin={handleLogin} />}
     </AuthProvider>
   );
 }

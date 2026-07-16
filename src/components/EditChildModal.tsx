@@ -40,8 +40,8 @@ export default function EditChildModal({ child, isOpen, onClose, onSave }: EditC
 
   const handleStatusChange = (newStatus: ChildStatus) => {
     setStatus(newStatus);
-    if (newStatus === 'تم التطعيم فى وحدة بتاريخ') {
-      if (!vaccinationDate) setVaccinationDate(new Date().toISOString().split('T')[0]);
+    if (newStatus === 'تم التطعيم فى وحدة بتاريخ' && !vaccinationDate) {
+      setVaccinationDate(new Date().toISOString().split('T')[0]);
     }
   };
 
@@ -74,11 +74,8 @@ export default function EditChildModal({ child, isOpen, onClose, onSave }: EditC
 
       await onSave(child.id, updates);
       onClose();
-    } catch (err) {
-      setError('حدث خطأ أثناء الحفظ');
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { setError('حدث خطأ أثناء الحفظ'); }
+    finally { setLoading(false); }
   };
 
   if (!isOpen || !child) return null;
@@ -87,7 +84,7 @@ export default function EditChildModal({ child, isOpen, onClose, onSave }: EditC
   return (
     <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto transition-colors duration-300" dir="rtl">
-        <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
           <h2 className="text-xl font-bold text-white">تعديل بيانات المتابعة</h2>
           <button onClick={onClose} className="p-1 hover:bg-white/20 rounded-lg transition-colors"><X className="w-6 h-6 text-white" /></button>
         </div>

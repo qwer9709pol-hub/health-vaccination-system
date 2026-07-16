@@ -15,9 +15,7 @@ function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return '';
   const date = new Date(dateStr);
   if (isNaN(date.getTime())) return dateStr;
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  return `${day}/${month}/${date.getFullYear()}`;
+  return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
 }
 
 function getStatusDetails(child: DelayedChild): string {
@@ -43,11 +41,7 @@ export default function AdminDashboard() {
   const [selectedChild, setSelectedChild] = useState<DelayedChild | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
-  const [kpis, setKPIs] = useState<KPIs>({
-    total: 0, vaccinated: 0, notVaccinated: 0, refused: 0, traveling: 0,
-    documentedTravel: 0, sick: 0, transferred: 0, deceased: 0,
-    phoneUnavailable: 0, phoneWrong: 0, completion: 0,
-  });
+  const [kpis, setKPIs] = useState<KPIs>({ total: 0, vaccinated: 0, notVaccinated: 0, refused: 0, traveling: 0, documentedTravel: 0, sick: 0, transferred: 0, deceased: 0, phoneUnavailable: 0, phoneWrong: 0, completion: 0 });
   const [units, setUnits] = useState<Unit[]>([]);
   const [unitStats, setUnitStats] = useState<UnitStats[]>([]);
 
@@ -57,31 +51,19 @@ export default function AdminDashboard() {
     try {
       setLoading(true);
       const [childrenData, unitsData] = await Promise.all([fetchChildren(), fetchUnits()]);
-      setChildren(childrenData);
-      setUnits(unitsData);
+      setChildren(childrenData); setUnits(unitsData);
       setKPIs(calculateKPIs(childrenData));
       setUnitStats(calculateUnitStats(childrenData, unitsData));
-    } catch (error) {
-      console.error('Error loading data:', error);
-    } finally {
-      setLoading(false);
-    }
+    } catch (error) { console.error('Error loading data:', error); }
+    finally { setLoading(false); }
   };
 
-  const handleSaveChild = async (id: string, updates: Partial<DelayedChild>) => {
-    await updateChild(id, updates);
-    await loadData();
-  };
+  const handleSaveChild = async (id: string, updates: Partial<DelayedChild>) => { await updateChild(id, updates); await loadData(); };
 
   const handleDeleteChild = async (child: DelayedChild) => {
     if (!confirm(`هل أنت متأكد من حذف الطفل "${child.child_name}"؟`)) return;
-    try {
-      await deleteChild(child.id);
-      await loadData();
-    } catch (error) {
-      console.error('Error deleting child:', error);
-      alert('حدث خطأ أثناء الحذف');
-    }
+    try { await deleteChild(child.id); await loadData(); }
+    catch (error) { console.error('Error deleting child:', error); alert('حدث خطأ أثناء الحذف'); }
   };
 
   const filteredChildren = useMemo(() => {
@@ -90,15 +72,7 @@ export default function AdminDashboard() {
       const matchesUnit = !unitFilter || child.unit?.unit_name === unitFilter;
       const matchesDose = !doseFilter || child.dose === doseFilter;
       const q = searchQuery.trim().toLowerCase();
-      const matchesSearch = !q ||
-        child.child_name?.toLowerCase().includes(q) ||
-        child.mother_name?.toLowerCase().includes(q) ||
-        child.phone_number?.includes(q) ||
-        child.reporter_phone?.includes(q) ||
-        child.registration_number?.toString().includes(q) ||
-        child.address?.toLowerCase().includes(q) ||
-        child.dose?.toLowerCase().includes(q) ||
-        child.unit?.unit_name?.toLowerCase().includes(q);
+      const matchesSearch = !q || child.child_name?.toLowerCase().includes(q) || child.mother_name?.toLowerCase().includes(q) || child.phone_number?.includes(q) || child.reporter_phone?.includes(q) || child.registration_number?.toString().includes(q) || child.address?.toLowerCase().includes(q) || child.dose?.toLowerCase().includes(q) || child.unit?.unit_name?.toLowerCase().includes(q);
       return matchesStatus && matchesUnit && matchesDose && matchesSearch;
     });
   }, [children, searchQuery, statusFilter, unitFilter, doseFilter]);
@@ -132,11 +106,7 @@ export default function AdminDashboard() {
     XLSX.writeFile(wb, `تقرير_الأطفال_المتخلفين_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
-  const chartData = unitStats.slice(0, 10).map((stat) => ({
-    name: stat.unit_name.length > 10 ? stat.unit_name.substring(0, 10) + '...' : stat.unit_name,
-    total: stat.total, vaccinated: stat.vaccinated, remaining: stat.remaining,
-  }));
-
+  const chartData = unitStats.slice(0, 10).map((stat) => ({ name: stat.unit_name.length > 10 ? stat.unit_name.substring(0, 10) + '...' : stat.unit_name, total: stat.total, vaccinated: stat.vaccinated, remaining: stat.remaining }));
   const statusPieData = [
     { name: 'تم التطعيم', value: kpis.vaccinated, color: '#059669' },
     { name: 'لم يتم التطعيم', value: kpis.notVaccinated, color: '#f59e0b' },
@@ -144,7 +114,6 @@ export default function AdminDashboard() {
     { name: 'مسافر', value: kpis.traveling, color: '#3b82f6' },
     { name: 'مريض', value: kpis.sick, color: '#eab308' },
   ].filter((d) => d.value > 0);
-
   const lowPerformingUnits = unitStats.filter((u) => u.completion < 50 && u.total > 0);
 
   return (
@@ -152,12 +121,10 @@ export default function AdminDashboard() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">لوحة تحكم المدير</h1>
         <div className="flex gap-2">
-          <button onClick={() => setBulkDeleteOpen(true)}
-            className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors shadow-sm">
+          <button onClick={() => setBulkDeleteOpen(true)} className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors shadow-sm">
             <Trash2 className="w-5 h-5" />حذف جماعي
           </button>
-          <button onClick={handleExport}
-            className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors shadow-sm">
+          <button onClick={handleExport} className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors shadow-sm">
             <Download className="w-5 h-5" />تصدير التقرير
           </button>
         </div>
@@ -211,8 +178,7 @@ export default function AdminDashboard() {
           <div className="h-64 flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={statusPieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} dataKey="value"
-                  label={({ name, percent }) => `${name} (${((percent || 0) * 100).toFixed(0)}٪)`}>
+                <Pie data={statusPieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} dataKey="value" label={({ name, percent }) => `${name} (${((percent || 0) * 100).toFixed(0)}٪)`}>
                   {statusPieData.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.color} />))}
                 </Pie>
                 <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px' }} />

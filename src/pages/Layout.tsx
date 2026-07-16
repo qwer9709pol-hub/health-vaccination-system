@@ -12,9 +12,7 @@ interface LayoutProps {
   onLogout: () => void;
 }
 
-export default function Layout({
-  children, activeTab, onTabChange, notificationCount, onNotificationClick, onLogout,
-}: LayoutProps) {
+export default function Layout({ children, activeTab, onTabChange, notificationCount, onNotificationClick, onLogout }: LayoutProps) {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
@@ -24,7 +22,6 @@ export default function Layout({
     { id: 'import', label: 'رفع ملف', icon: FileSpreadsheet },
     { id: 'units', label: 'الوحدات', icon: Building2 },
   ];
-
   const unitTabs = [{ id: 'dashboard', label: 'لوحة التحكم', icon: LayoutDashboard }];
   const tabs = user?.role === 'admin' ? adminTabs : unitTabs;
 
@@ -34,9 +31,7 @@ export default function Layout({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <div className="bg-white/20 p-2 rounded-lg">
-                <Shield className="w-6 h-6" />
-              </div>
+              <div className="bg-white/20 p-2 rounded-lg"><Shield className="w-6 h-6" /></div>
               <div>
                 <h1 className="font-bold text-lg">نظام متابعة التطعيمات</h1>
                 <p className="text-emerald-100 text-xs">للأطفال المتخلفين عن التطعيم</p>
@@ -71,9 +66,7 @@ export default function Layout({
             {tabs.map((tab) => (
               <button key={tab.id} onClick={() => onTabChange(tab.id)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
-                  activeTab === tab.id
-                    ? 'bg-emerald-600 text-white shadow-md'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  activeTab === tab.id ? 'bg-emerald-600 text-white shadow-md' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}>
                 <tab.icon className="w-5 h-5" />{tab.label}
               </button>

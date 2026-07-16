@@ -29,16 +29,14 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     e.preventDefault(); setError(''); setLoading(true);
     const result = await login(selectedUnit, password);
     setLoading(false);
-    if (result.success) onLogin();
-    else setError(result.error || 'حدث خطأ');
+    if (result.success) onLogin(); else setError(result.error || 'حدث خطأ');
   };
 
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault(); setError(''); setLoading(true);
     const result = await adminLogin(username, adminPassword);
     setLoading(false);
-    if (result.success) onLogin();
-    else setError(result.error || 'حدث خطأ');
+    if (result.success) onLogin(); else setError(result.error || 'حدث خطأ');
   };
 
   return (
@@ -79,9 +77,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                   <select value={selectedUnit} onChange={(e) => setSelectedUnit(e.target.value)}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all bg-white" required>
                     <option value="">-- اختر الوحدة --</option>
-                    {healthUnitsList.map((unitName, index) => (
-                      <option key={index} value={unitName}>{unitName}</option>
-                    ))}
+                    {healthUnitsList.map((unitName, index) => (<option key={index} value={unitName}>{unitName}</option>))}
                   </select>
                 </div>
                 <div>

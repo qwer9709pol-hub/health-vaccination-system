@@ -14,9 +14,7 @@ function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return '';
   const date = new Date(dateStr);
   if (isNaN(date.getTime())) return dateStr;
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  return `${day}/${month}/${date.getFullYear()}`;
+  return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
 }
 
 function getStatusDetails(child: DelayedChild): string {
@@ -41,11 +39,7 @@ export default function UnitDashboard() {
   const [editingChild, setEditingChild] = useState<DelayedChild | null>(null);
   const [selectedChild, setSelectedChild] = useState<DelayedChild | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [kpis, setKPIs] = useState<KPIs>({
-    total: 0, vaccinated: 0, notVaccinated: 0, refused: 0, traveling: 0,
-    documentedTravel: 0, sick: 0, transferred: 0, deceased: 0,
-    phoneUnavailable: 0, phoneWrong: 0, completion: 0,
-  });
+  const [kpis, setKPIs] = useState<KPIs>({ total: 0, vaccinated: 0, notVaccinated: 0, refused: 0, traveling: 0, documentedTravel: 0, sick: 0, transferred: 0, deceased: 0, phoneUnavailable: 0, phoneWrong: 0, completion: 0 });
 
   useEffect(() => { loadData(); }, [user?.unit_id]);
 
@@ -54,28 +48,18 @@ export default function UnitDashboard() {
     try {
       setLoading(true);
       const data = await fetchChildren(user.unit_id);
-      setChildren(data);
-      setKPIs(calculateKPIs(data));
-    } catch (error) {
-      console.error('Error loading data:', error);
-    } finally {
-      setLoading(false);
-    }
+      setChildren(data); setKPIs(calculateKPIs(data));
+    } catch (error) { console.error('Error loading data:', error); }
+    finally { setLoading(false); }
   };
 
-  const handleSaveChild = async (id: string, updates: Partial<DelayedChild>) => {
-    await updateChild(id, updates, user?.id);
-    await loadData();
-  };
+  const handleSaveChild = async (id: string, updates: Partial<DelayedChild>) => { await updateChild(id, updates, user?.id); await loadData(); };
 
   const filteredChildren = useMemo(() => {
     return children.filter((child) => {
       const matchesStatus = !statusFilter || child.status === statusFilter;
       const matchesDose = !doseFilter || child.dose === doseFilter;
-      const matchesSearch = !searchQuery ||
-        child.child_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (child.mother_name?.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (child.phone_number?.includes(searchQuery));
+      const matchesSearch = !searchQuery || child.child_name.toLowerCase().includes(searchQuery.toLowerCase()) || (child.mother_name?.toLowerCase().includes(searchQuery.toLowerCase())) || (child.phone_number?.includes(searchQuery));
       return matchesStatus && matchesDose && matchesSearch;
     });
   }, [children, searchQuery, statusFilter, doseFilter]);

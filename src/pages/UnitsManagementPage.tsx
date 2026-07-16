@@ -21,11 +21,8 @@ export default function UnitsManagementPage() {
       const { data, error } = await supabase.from('units').select('*').order('unit_name');
       if (error) throw error;
       setUnits(data || []);
-    } catch (err) {
-      console.error('Error loading units:', err);
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { console.error('Error loading units:', err); }
+    finally { setLoading(false); }
   };
 
   const handleOpenModal = (unit?: Unit) => {

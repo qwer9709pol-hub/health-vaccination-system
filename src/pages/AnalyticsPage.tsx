@@ -36,11 +36,8 @@ export default function AnalyticsPage() {
       setLoading(true);
       const [childrenData, unitsData] = await Promise.all([fetchChildren(), fetchUnits()]);
       setChildren(childrenData); setUnits(unitsData);
-    } catch (error) {
-      console.error('Error loading data:', error);
-    } finally {
-      setLoading(false);
-    }
+    } catch (error) { console.error('Error loading data:', error); }
+    finally { setLoading(false); }
   };
 
   const filteredChildren = useMemo(() => {
@@ -69,10 +66,7 @@ export default function AnalyticsPage() {
     return Object.entries(statusCounts).map(([name, value]) => ({ name, value, color: STATUS_COLORS[name] || '#6b7280' }));
   }, [filteredChildren]);
 
-  const unitCompletionChart = unitStats.slice(0, 10).map((stat) => ({
-    name: stat.unit_name.length > 10 ? stat.unit_name.substring(0, 10) + '...' : stat.unit_name,
-    الإنجاز: stat.completion, المطعمين: stat.vaccinated, المتبقي: stat.remaining,
-  }));
+  const unitCompletionChart = unitStats.slice(0, 10).map((stat) => ({ name: stat.unit_name.length > 10 ? stat.unit_name.substring(0, 10) + '...' : stat.unit_name, الإنجاز: stat.completion, المطعمين: stat.vaccinated, المتبقي: stat.remaining }));
 
   const monthlyTrend = useMemo(() => {
     const monthCounts: Record<string, { total: number; vaccinated: number }> = {};
@@ -85,10 +79,7 @@ export default function AnalyticsPage() {
         if (child.status === 'تم التطعيم فى وحدة بتاريخ') monthCounts[monthKey].vaccinated++;
       }
     });
-    return Object.entries(monthCounts).sort(([a], [b]) => a.localeCompare(b)).slice(-12).map(([month, counts]) => ({
-      name: month, 'إجمالي': counts.total, 'المطعمين': counts.vaccinated,
-      'نسبة الإنجاز': counts.total > 0 ? Math.round((counts.vaccinated / counts.total) * 100) : 0,
-    }));
+    return Object.entries(monthCounts).sort(([a], [b]) => a.localeCompare(b)).slice(-12).map(([month, counts]) => ({ name: month, 'إجمالي': counts.total, 'المطعمين': counts.vaccinated, 'نسبة الإنجاز': counts.total > 0 ? Math.round((counts.vaccinated / counts.total) * 100) : 0 }));
   }, [filteredChildren]);
 
   const clearFilters = () => { setUnitFilter(''); setStatusFilter(''); setDateFrom(''); setDateTo(''); };
@@ -185,8 +176,7 @@ export default function AnalyticsPage() {
           <div className="h-80 flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={statusDistribution} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value"
-                  label={({ name, percent }) => `${name} (${((percent || 0) * 100).toFixed(0)}٪)`} labelLine={false}>
+                <Pie data={statusDistribution} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value" label={({ name, percent }) => `${name} (${((percent || 0) * 100).toFixed(0)}٪)`} labelLine={false}>
                   {statusDistribution.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.color} />))}
                 </Pie>
                 <Tooltip contentStyle={chartTooltipStyle} />

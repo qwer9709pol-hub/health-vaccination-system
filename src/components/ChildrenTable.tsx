@@ -1,6 +1,7 @@
 import React from 'react';
-import { Edit2, Check, X, Clock, Plane, HelpCircle, Heart, PhoneOff, ShieldCheck, ArrowRight, XCircle, Trash2 } from 'lucide-react';
+import { Edit2, Check, X, Clock, Plane, HelpCircle, Heart, PhoneOff, ShieldCheck, ArrowRight, XCircle, Trash2, Phone } from 'lucide-react';
 import { DelayedChild, STATUS_CONFIG, ChildStatus } from '../types';
+import WhatsAppIcon from './WhatsAppIcon';
 
 interface ChildrenTableProps {
   children: DelayedChild[];
@@ -42,8 +43,7 @@ export default function ChildrenTable({ children, loading, showUnit = false, onE
     return (
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-8 flex items-center justify-center transition-colors duration-300">
         <div className="text-center text-gray-500 dark:text-gray-400">
-          <HelpCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
-          <p>لا توجد بيانات</p>
+          <HelpCircle className="w-12 h-12 mx-auto mb-3 opacity-50" /><p>لا توجد بيانات</p>
         </div>
       </div>
     );
@@ -107,18 +107,26 @@ export default function ChildrenTable({ children, loading, showUnit = false, onE
                   <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{child.age ? `${child.age} سنة` : '-'}</td>
                   <td className="px-4 py-3 text-sm" dir="ltr">
                     {child.phone_number ? (
-                      <div className="flex items-center gap-2">
-                        <a href={`tel:${child.phone_number}`} title="اتصال" className="text-blue-600 dark:text-blue-400 hover:text-blue-800">📞</a>
-                        <a href={`https://wa.me/2${child.phone_number.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer" title="واتساب" className="text-green-600 dark:text-green-400 hover:text-green-800">💬</a>
+                      <div className="flex items-center gap-1.5">
+                        <a href={`tel:${child.phone_number}`} title="اتصال" className="inline-flex items-center justify-center p-1 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors">
+                          <Phone className="w-4 h-4" />
+                        </a>
+                        <a href={`https://wa.me/2${child.phone_number.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer" title="واتساب" className="inline-flex items-center justify-center p-1 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors">
+                          <WhatsAppIcon className="w-4 h-4" />
+                        </a>
                         <span className="text-gray-900 dark:text-white">{child.phone_number}</span>
                       </div>
                     ) : '-'}
                   </td>
                   <td className="px-4 py-3 text-sm" dir="ltr">
                     {child.reporter_phone ? (
-                      <div className="flex items-center gap-2">
-                        <a href={`tel:${child.reporter_phone}`} title="اتصال" className="text-blue-600 dark:text-blue-400 hover:text-blue-800">📞</a>
-                        <a href={`https://wa.me/2${child.reporter_phone.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer" title="واتساب" className="text-green-600 dark:text-green-400 hover:text-green-800">💬</a>
+                      <div className="flex items-center gap-1.5">
+                        <a href={`tel:${child.reporter_phone}`} title="اتصال" className="inline-flex items-center justify-center p-1 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors">
+                          <Phone className="w-4 h-4" />
+                        </a>
+                        <a href={`https://wa.me/2${child.reporter_phone.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer" title="واتساب" className="inline-flex items-center justify-center p-1 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors">
+                          <WhatsAppIcon className="w-4 h-4" />
+                        </a>
                         <span className="text-gray-900 dark:text-white">{child.reporter_phone}</span>
                       </div>
                     ) : '-'}
