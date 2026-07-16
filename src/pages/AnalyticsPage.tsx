@@ -1,29 +1,15 @@
 import { useState, useEffect, useMemo } from 'react';
-import {
-  Users, CheckCircle, Clock, XCircle, Plane, Heart, TrendingUp,
-  AlertTriangle, BarChart3, PieChart as PieIcon, Activity, PhoneOff, ArrowUpDown,
-} from 'lucide-react';
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, LineChart, Line, Legend, ComposedChart,
-} from 'recharts';
+import { Users, CheckCircle, Clock, XCircle, Plane, Heart, TrendingUp, AlertTriangle, BarChart3, PieChart as PieIcon, Activity, PhoneOff, ArrowUpDown } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend, ComposedChart } from 'recharts';
 import { DelayedChild, Unit, KPIs, UnitStats } from '../types';
 import { fetchChildren, fetchUnits, calculateUnitStats, calculateKPIs } from '../api/data';
 import KPICard from '../components/KPICard';
 
 const STATUS_COLORS: Record<string, string> = {
-  'تم التطعيم فى وحدة بتاريخ': '#059669',
-  'لم يتم التطعيم': '#f59e0b',
-  'رفض': '#ef4444',
-  'مسافر': '#3b82f6',
-  'مسافر موثق': '#8b5cf6',
-  'مريض': '#eab308',
-  'متوفى': '#6b7280',
-  'تم التحويل الى اقرب وحدة': '#14b8a6',
-  'الهاتف غير متاح': '#9ca3af',
-  'الهاتف خطأ': '#6b7280',
-  'منزل مغلق': '#d97706',
-  'الهاتف مغلق': '#94a3b8',
+  'تم التطعيم فى وحدة بتاريخ': '#059669', 'لم يتم التطعيم': '#f59e0b', 'رفض': '#ef4444',
+  'مسافر': '#3b82f6', 'مسافر موثق': '#8b5cf6', 'مريض': '#eab308', 'متوفى': '#6b7280',
+  'تم التحويل الى اقرب وحدة': '#14b8a6', 'الهاتف غير متاح': '#9ca3af', 'الهاتف خطأ': '#6b7280',
+  'منزل مغلق': '#d97706', 'الهاتف مغلق': '#94a3b8',
 };
 
 function getPerformanceRating(completion: number): { label: string; color: string; icon: string } {
@@ -49,8 +35,7 @@ export default function AnalyticsPage() {
     try {
       setLoading(true);
       const [childrenData, unitsData] = await Promise.all([fetchChildren(), fetchUnits()]);
-      setChildren(childrenData);
-      setUnits(unitsData);
+      setChildren(childrenData); setUnits(unitsData);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -63,14 +48,8 @@ export default function AnalyticsPage() {
       const matchesUnit = !unitFilter || child.unit?.unit_name === unitFilter;
       const matchesStatus = !statusFilter || child.status === statusFilter;
       let matchesDate = true;
-      if (dateFrom) {
-        const childDate = new Date(child.created_at || '');
-        if (childDate < new Date(dateFrom)) matchesDate = false;
-      }
-      if (dateTo) {
-        const childDate = new Date(child.created_at || '');
-        if (childDate > new Date(dateTo)) matchesDate = false;
-      }
+      if (dateFrom) { if (new Date(child.created_at || '') < new Date(dateFrom)) matchesDate = false; }
+      if (dateTo) { if (new Date(child.created_at || '') > new Date(dateTo)) matchesDate = false; }
       return matchesUnit && matchesStatus && matchesDate;
     });
   }, [children, unitFilter, statusFilter, dateFrom, dateTo]);
@@ -87,16 +66,12 @@ export default function AnalyticsPage() {
       const status = child.status || 'لم يتم التطعيم';
       statusCounts[status] = (statusCounts[status] || 0) + 1;
     });
-    return Object.entries(statusCounts).map(([name, value]) => ({
-      name, value, color: STATUS_COLORS[name] || '#6b7280',
-    }));
+    return Object.entries(statusCounts).map(([name, value]) => ({ name, value, color: STATUS_COLORS[name] || '#6b7280' }));
   }, [filteredChildren]);
 
   const unitCompletionChart = unitStats.slice(0, 10).map((stat) => ({
     name: stat.unit_name.length > 10 ? stat.unit_name.substring(0, 10) + '...' : stat.unit_name,
-    الإنجاز: stat.completion,
-    المطعمين: stat.vaccinated,
-    المتبقي: stat.remaining,
+    الإنجاز: stat.completion, المطعمين: stat.vaccinated, المتبقي: stat.remaining,
   }));
 
   const monthlyTrend = useMemo(() => {
@@ -110,20 +85,13 @@ export default function AnalyticsPage() {
         if (child.status === 'تم التطعيم فى وحدة بتاريخ') monthCounts[monthKey].vaccinated++;
       }
     });
-    return Object.entries(monthCounts)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .slice(-12)
-      .map(([month, counts]) => ({
-        name: month,
-        'إجمالي': counts.total,
-        'المطعمين': counts.vaccinated,
-        'نسبة الإنجاز': counts.total > 0 ? Math.round((counts.vaccinated / counts.total) * 100) : 0,
-      }));
+    return Object.entries(monthCounts).sort(([a], [b]) => a.localeCompare(b)).slice(-12).map(([month, counts]) => ({
+      name: month, 'إجمالي': counts.total, 'المطعمين': counts.vaccinated,
+      'نسبة الإنجاز': counts.total > 0 ? Math.round((counts.vaccinated / counts.total) * 100) : 0,
+    }));
   }, [filteredChildren]);
 
-  const clearFilters = () => {
-    setUnitFilter(''); setStatusFilter(''); setDateFrom(''); setDateTo('');
-  };
+  const clearFilters = () => { setUnitFilter(''); setStatusFilter(''); setDateFrom(''); setDateTo(''); };
 
   if (loading) {
     return (
@@ -142,25 +110,21 @@ export default function AnalyticsPage() {
     <div className="space-y-6" dir="rtl">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">التقارير والإحصائيات</h1>
-        <button onClick={clearFilters} className="text-sm text-emerald-600 dark:text-emerald-400 hover:text-emerald-700">
-          مسح الفلاتر
-        </button>
+        <button onClick={clearFilters} className="text-sm text-emerald-600 dark:text-emerald-400 hover:text-emerald-700">مسح الفلاتر</button>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-4 transition-colors duration-300">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الوحدة</label>
-            <select value={unitFilter} onChange={(e) => setUnitFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-white">
+            <select value={unitFilter} onChange={(e) => setUnitFilter(e.target.value)} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-white">
               <option value="">كل الوحدات</option>
               {units.map((u) => (<option key={u.id} value={u.unit_name}>{u.unit_name}</option>))}
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الحالة</label>
-            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-white">
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-white">
               <option value="">كل الحالات</option>
               <option value="تم التطعيم فى وحدة بتاريخ">تم التطعيم</option>
               <option value="لم يتم التطعيم">لم يتم التطعيم</option>
@@ -174,13 +138,11 @@ export default function AnalyticsPage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">من تاريخ</label>
-            <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-white" />
+            <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-white" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">إلى تاريخ</label>
-            <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-white" />
+            <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-white" />
           </div>
         </div>
       </div>
@@ -193,7 +155,6 @@ export default function AnalyticsPage() {
         <KPICard title="رفض" value={kpis.refused} color="red" icon={<XCircle className="w-5 h-5" />} />
         <KPICard title="مسافر" value={kpis.traveling} color="blue" icon={<Plane className="w-5 h-5" />} />
       </div>
-
       <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-4">
         <KPICard title="مسافر موثق" value={kpis.documentedTravel} color="purple" icon={<Plane className="w-5 h-5" />} />
         <KPICard title="مريض" value={kpis.sick} color="yellow" icon={<Heart className="w-5 h-5" />} />
@@ -205,10 +166,7 @@ export default function AnalyticsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-emerald-600" />
-            نسبة الإنجاز لكل وحدة
-          </h3>
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><BarChart3 className="w-5 h-5 text-emerald-600" />نسبة الإنجاز لكل وحدة</h3>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={unitCompletionChart} layout="vertical">
@@ -222,12 +180,8 @@ export default function AnalyticsPage() {
             </ResponsiveContainer>
           </div>
         </div>
-
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <PieIcon className="w-5 h-5 text-emerald-600" />
-            توزيع الحالات
-          </h3>
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><PieIcon className="w-5 h-5 text-emerald-600" />توزيع الحالات</h3>
           <div className="h-80 flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -246,10 +200,7 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {monthlyTrend.length > 0 && (
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <Activity className="w-5 h-5 text-emerald-600" />
-              معدلات التطعيم مع الزمن
-            </h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><Activity className="w-5 h-5 text-emerald-600" />معدلات التطعيم مع الزمن</h3>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={monthlyTrend}>
@@ -267,12 +218,8 @@ export default function AnalyticsPage() {
             </div>
           </div>
         )}
-
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-emerald-600" />
-            أفضل وأسوأ الوحدات
-          </h3>
+          <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><TrendingUp className="w-5 h-5 text-emerald-600" />أفضل وأسوأ الوحدات</h3>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={[...topPerformers.slice(0, 5), ...bottomPerformers.slice(0, 5)]} layout="vertical">
@@ -287,16 +234,6 @@ export default function AnalyticsPage() {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-          </div>
-          <div className="flex justify-center gap-6 mt-2 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-emerald-600 rounded" />
-              <span className="text-gray-600 dark:text-gray-400">أفضل 5</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-red-500 rounded" />
-              <span className="text-gray-600 dark:text-gray-400">أسوأ 5</span>
-            </div>
           </div>
         </div>
       </div>
@@ -329,9 +266,7 @@ export default function AnalyticsPage() {
                         index === 1 ? 'bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300' :
                         index === 2 ? 'bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300' :
                         'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
-                      }`}>
-                        {index + 1}
-                      </span>
+                      }`}>{index + 1}</span>
                     </td>
                     <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{unit.unit_name}</td>
                     <td className="px-4 py-3 text-center text-gray-600 dark:text-gray-400">{unit.total}</td>
@@ -347,8 +282,7 @@ export default function AnalyticsPage() {
                     </td>
                     <td className="px-4 py-3 text-center">
                       <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${performance.color} bg-gray-100 dark:bg-gray-700`}>
-                        <span>{performance.icon}</span>
-                        <span>{performance.label}</span>
+                        <span>{performance.icon}</span><span>{performance.label}</span>
                       </span>
                     </td>
                   </tr>

@@ -16,27 +16,18 @@ function formatDate(dateStr: string | null | undefined): string {
   if (isNaN(date.getTime())) return dateStr;
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = date.getFullYear();
-  return `${day}/${month}/${year}`;
+  return `${day}/${month}/${date.getFullYear()}`;
 }
 
 function getStatusDetails(child: DelayedChild): string {
   switch (child.status) {
-    case 'تم التطعيم فى وحدة بتاريخ':
-      return `${child.vaccination_place || ''} ${formatDate(child.vaccination_date)}`.trim();
-    case 'مسافر':
-    case 'مسافر موثق':
-      return `${child.travel_country || ''} ${formatDate(child.travel_date)}`.trim();
-    case 'مريض':
-      return child.disease_name || '';
-    case 'رفض':
-      return child.refusal_reason || '';
-    case 'تم التحويل الى اقرب وحدة':
-      return child.transfer_destination || '';
-    case 'متوفى':
-      return formatDate(child.death_date);
-    default:
-      return '';
+    case 'تم التطعيم فى وحدة بتاريخ': return `${child.vaccination_place || ''} ${formatDate(child.vaccination_date)}`.trim();
+    case 'مسافر': case 'مسافر موثق': return `${child.travel_country || ''} ${formatDate(child.travel_date)}`.trim();
+    case 'مريض': return child.disease_name || '';
+    case 'رفض': return child.refusal_reason || '';
+    case 'تم التحويل الى اقرب وحدة': return child.transfer_destination || '';
+    case 'متوفى': return formatDate(child.death_date);
+    default: return '';
   }
 }
 
@@ -81,8 +72,7 @@ export default function UnitDashboard() {
     return children.filter((child) => {
       const matchesStatus = !statusFilter || child.status === statusFilter;
       const matchesDose = !doseFilter || child.dose === doseFilter;
-      const matchesSearch =
-        !searchQuery ||
+      const matchesSearch = !searchQuery ||
         child.child_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (child.mother_name?.toLowerCase().includes(searchQuery.toLowerCase())) ||
         (child.phone_number?.includes(searchQuery));
@@ -98,55 +88,21 @@ export default function UnitDashboard() {
 
   const handleExport = () => {
     const exportData = filteredChildren.map((child) => ({
-      'اسم الطفل': child.child_name,
-      'اسم الأم': child.mother_name || '',
-      'رقم القيد': child.registration_number || '',
-      'تاريخ الميلاد': formatDate(child.birth_date),
-      'العمر': child.age ? `${child.age} سنة` : '',
-      'العنوان': child.address || '',
-      'رقم هاتف الطفل': child.phone_number || '',
-      'رقم هاتف المُبلغ': child.reporter_phone || '',
-      'التطعيم المتخلف': child.dose || '',
-      'آخر تطعيم': child.last_vaccine || '',
-      'الحالة': child.status,
-      'تفاصيل الحالة': getStatusDetails(child),
-      'تاريخ التطعيم': formatDate(child.vaccination_date),
-      'مكان التطعيم': child.vaccination_place || '',
-      'الدولة (للمسافر)': child.travel_country || '',
-      'تاريخ السفر': formatDate(child.travel_date),
-      'اسم المرض': child.disease_name || '',
-      'سبب الرفض': child.refusal_reason || '',
-      'جهة التحويل': child.transfer_destination || '',
-      'تاريخ الوفاة': formatDate(child.death_date),
-      'آخر متابعة': formatDate(child.last_follow_up),
-      'ملاحظات المتابعة': child.follow_up_notes || '',
+      'اسم الطفل': child.child_name, 'اسم الأم': child.mother_name || '', 'رقم القيد': child.registration_number || '',
+      'تاريخ الميلاد': formatDate(child.birth_date), 'العمر': child.age ? `${child.age} سنة` : '', 'العنوان': child.address || '',
+      'رقم هاتف الطفل': child.phone_number || '', 'رقم هاتف المُبلغ': child.reporter_phone || '',
+      'التطعيم المتخلف': child.dose || '', 'آخر تطعيم': child.last_vaccine || '',
+      'الحالة': child.status, 'تفاصيل الحالة': getStatusDetails(child),
+      'تاريخ التطعيم': formatDate(child.vaccination_date), 'مكان التطعيم': child.vaccination_place || '',
+      'الدولة (للمسافر)': child.travel_country || '', 'تاريخ السفر': formatDate(child.travel_date),
+      'اسم المرض': child.disease_name || '', 'سبب الرفض': child.refusal_reason || '',
+      'جهة التحويل': child.transfer_destination || '', 'تاريخ الوفاة': formatDate(child.death_date),
+      'آخر متابعة': formatDate(child.last_follow_up), 'ملاحظات المتابعة': child.follow_up_notes || '',
       'تاريخ آخر تعديل': formatDate(child.updated_at),
     }));
-
     const ws = XLSX.utils.json_to_sheet(exportData);
-    const colWidths = [
-      { wch: 20 }, { wch: 20 }, { wch: 15 }, { wch: 15 }, { wch: 10 },
-      { wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 20 }, { wch: 20 },
-      { wch: 25 }, { wch: 25 }, { wch: 15 }, { wch: 20 }, { wch: 15 },
-      { wch: 15 }, { wch: 20 }, { wch: 25 }, { wch: 20 }, { wch: 15 },
-      { wch: 15 }, { wch: 30 }, { wch: 15 },
-    ];
-    ws['!cols'] = colWidths;
-
-    const headerRange = XLSX.utils.decode_range(ws['!ref'] || 'A1');
-    for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
-      const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
-      if (ws[cellAddress]) {
-        ws[cellAddress].s = {
-          font: { bold: true },
-          fill: { fgColor: { rgb: 'C6EFCE' } },
-          alignment: { horizontal: 'center', vertical: 'center' },
-        };
-      }
-    }
-    ws['!freeze'] = { xSplit: 0, ySplit: 1 };
+    ws['!cols'] = Array.from({ length: 23 }, () => ({ wch: 20 }));
     ws['!autofilter'] = { ref: ws['!ref'] || 'A1' };
-
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'الأطفال المتخلفين');
     XLSX.writeFile(wb, `تقرير_الأطفال_المتخلفين_${new Date().toISOString().split('T')[0]}.xlsx`);
@@ -159,15 +115,10 @@ export default function UnitDashboard() {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">لوحة تحكم الوحدة</h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">{user?.unit_name}</p>
         </div>
-        <button
-          onClick={handleExport}
-          className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors shadow-sm"
-        >
-          <Download className="w-5 h-5" />
-          تصدير التقرير
+        <button onClick={handleExport} className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors shadow-sm">
+          <Download className="w-5 h-5" />تصدير التقرير
         </button>
       </div>
-
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
         <KPICard title="إجمالي الأطفال" value={kpis.total} color="blue" icon={<Users className="w-5 h-5" />} />
         <KPICard title="تم التطعيم" value={kpis.vaccinated} color="emerald" icon={<CheckCircle className="w-5 h-5" />} />
@@ -177,33 +128,25 @@ export default function UnitDashboard() {
         <KPICard title="مريض" value={kpis.sick} color="yellow" icon={<Heart className="w-5 h-5" />} />
         <KPICard title="نسبة الإنجاز" value={kpis.completion} suffix="٪" color={kpis.completion >= 70 ? 'emerald' : kpis.completion >= 40 ? 'orange' : 'red'} icon={<TrendingUp className="w-5 h-5" />} />
       </div>
-
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <KPICard title="مسافر موثق" value={kpis.documentedTravel} color="purple" icon={<Plane className="w-5 h-5" />} />
         <KPICard title="محول" value={kpis.transferred} color="teal" icon={<TrendingUp className="w-5 h-5" />} />
         <KPICard title="متوفى" value={kpis.deceased} color="gray" icon={<XCircle className="w-5 h-5" />} />
         <KPICard title="الهاتف غير متاح" value={kpis.phoneUnavailable} color="gray" icon={<Clock className="w-5 h-5" />} />
       </div>
-
       <div className="space-y-4">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white">قائمة الأطفال المتخلفين</h2>
         <SearchFilter
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          statusFilter={statusFilter}
-          onStatusChange={setStatusFilter}
-          doseFilter={doseFilter}
-          onDoseChange={setDoseFilter}
-          doses={availableDoses}
+          searchQuery={searchQuery} onSearchChange={setSearchQuery}
+          statusFilter={statusFilter} onStatusChange={setStatusFilter}
+          doseFilter={doseFilter} onDoseChange={setDoseFilter} doses={availableDoses}
         />
         <ChildrenTable
-          children={filteredChildren}
-          loading={loading}
+          children={filteredChildren} loading={loading}
           onEdit={setEditingChild}
           onView={(child) => { setSelectedChild(child); setProfileOpen(true); }}
         />
       </div>
-
       <EditChildModal child={editingChild} isOpen={!!editingChild} onClose={() => setEditingChild(null)} onSave={handleSaveChild} />
       <ChildProfileModal child={selectedChild} isOpen={profileOpen} onClose={() => setProfileOpen(false)} />
     </div>

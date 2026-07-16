@@ -1,5 +1,5 @@
 import React from 'react';
-import { Edit2, Check, X, Clock, Plane, UserX, HelpCircle, Heart, PhoneOff, ShieldCheck, ArrowRight, XCircle, Trash2 } from 'lucide-react';
+import { Edit2, Check, X, Clock, Plane, HelpCircle, Heart, PhoneOff, ShieldCheck, ArrowRight, XCircle, Trash2 } from 'lucide-react';
 import { DelayedChild, STATUS_CONFIG, ChildStatus } from '../types';
 
 interface ChildrenTableProps {
@@ -26,14 +26,7 @@ const statusIcons: Record<ChildStatus, React.ReactNode> = {
   'متوفى': <XCircle className="w-3 h-3" />,
 };
 
-export default function ChildrenTable({
-  children,
-  loading,
-  showUnit = false,
-  onEdit,
-  onView,
-  onDelete,
-}: ChildrenTableProps) {
+export default function ChildrenTable({ children, loading, showUnit = false, onEdit, onView, onDelete }: ChildrenTableProps) {
   if (loading) {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-8 flex items-center justify-center transition-colors duration-300">
@@ -82,31 +75,15 @@ export default function ChildrenTable({
               const statusConfig = STATUS_CONFIG[statusKey] || STATUS_CONFIG['لم يتم التطعيم'];
               const statusIcon = statusIcons[statusKey] || <Clock className="w-3 h-3" />;
               let statusDetails = '';
-
               switch (statusKey) {
-                case 'تم التطعيم فى وحدة بتاريخ':
-                  statusDetails = `${child.vaccination_place || ''} ${child.vaccination_date || ''}`;
-                  break;
-                case 'مسافر':
-                case 'مسافر موثق':
-                  statusDetails = `${child.travel_country || ''} ${child.travel_date || ''}`;
-                  break;
-                case 'تم التحويل الى اقرب وحدة':
-                  statusDetails = child.transfer_destination || '';
-                  break;
-                case 'مريض':
-                  statusDetails = child.disease_name || '';
-                  break;
-                case 'رفض':
-                  statusDetails = child.refusal_reason || '';
-                  break;
-                case 'متوفى':
-                  statusDetails = child.death_date || '';
-                  break;
-                default:
-                  statusDetails = '';
+                case 'تم التطعيم فى وحدة بتاريخ': statusDetails = `${child.vaccination_place || ''} ${child.vaccination_date || ''}`; break;
+                case 'مسافر': case 'مسافر موثق': statusDetails = `${child.travel_country || ''} ${child.travel_date || ''}`; break;
+                case 'تم التحويل الى اقرب وحدة': statusDetails = child.transfer_destination || ''; break;
+                case 'مريض': statusDetails = child.disease_name || ''; break;
+                case 'رفض': statusDetails = child.refusal_reason || ''; break;
+                case 'متوفى': statusDetails = child.death_date || ''; break;
+                default: statusDetails = '';
               }
-
               const rowBgClass =
                 statusKey === 'تم التطعيم فى وحدة بتاريخ' ? 'bg-green-50 dark:bg-green-900/20' :
                 statusKey === 'متوفى' ? 'bg-gray-200 dark:bg-gray-700' :
@@ -117,17 +94,10 @@ export default function ChildrenTable({
 
               return (
                 <tr key={child.id} className={`transition-colors hover:brightness-95 dark:hover:brightness-110 ${rowBgClass}`}>
-                  {showUnit && (
-                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{child.unit?.unit_name || '-'}</td>
-                  )}
+                  {showUnit && <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{child.unit?.unit_name || '-'}</td>}
                   <td className="px-4 py-3">
                     {onView ? (
-                      <button
-                        onClick={() => onView(child)}
-                        className="text-emerald-700 dark:text-emerald-400 font-semibold hover:text-emerald-900 dark:hover:text-emerald-300 hover:underline text-right"
-                      >
-                        {child.child_name}
-                      </button>
+                      <button onClick={() => onView(child)} className="text-emerald-700 dark:text-emerald-400 font-semibold hover:text-emerald-900 dark:hover:text-emerald-300 hover:underline text-right">{child.child_name}</button>
                     ) : (
                       <span className="text-gray-900 dark:text-white font-medium">{child.child_name}</span>
                     )}
@@ -157,31 +127,20 @@ export default function ChildrenTable({
                   <td className="px-4 py-3">
                     <div className="flex flex-col gap-1">
                       <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium w-fit ${statusConfig.bgColor} ${statusConfig.color}`}>
-                        {statusIcon}
-                        {statusConfig.label}
+                        {statusIcon}{statusConfig.label}
                       </span>
-                      <div className="text-xs text-red-600 dark:text-red-400 leading-5 whitespace-pre-line">
-                        {statusDetails || 'لا توجد تفاصيل'}
-                      </div>
+                      <div className="text-xs text-red-600 dark:text-red-400 leading-5 whitespace-pre-line">{statusDetails || 'لا توجد تفاصيل'}</div>
                     </div>
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{child.vaccination_date || '-'}</td>
                   <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400 max-w-xs truncate">{child.follow_up_notes || '-'}</td>
                   <td className="px-4 py-3 text-center">
                     <div className="flex items-center justify-center gap-1">
-                      <button
-                        onClick={() => onEdit(child)}
-                        className="inline-flex items-center justify-center p-2 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-lg transition-colors"
-                        title="تعديل"
-                      >
+                      <button onClick={() => onEdit(child)} className="inline-flex items-center justify-center p-2 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-lg transition-colors" title="تعديل">
                         <Edit2 className="w-4 h-4" />
                       </button>
                       {onDelete && (
-                        <button
-                          onClick={() => onDelete(child)}
-                          className="inline-flex items-center justify-center p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-                          title="حذف"
-                        >
+                        <button onClick={() => onDelete(child)} className="inline-flex items-center justify-center p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors" title="حذف">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       )}

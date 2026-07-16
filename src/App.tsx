@@ -25,9 +25,7 @@ function DashboardContent({ onLogout }: { onLogout: () => void }) {
 
   const unitId = user?.role === 'unit_user' ? user.unit_id : undefined;
 
-  useEffect(() => {
-    loadNotifications();
-  }, [user]);
+  useEffect(() => { loadNotifications(); }, [user]);
 
   const loadNotifications = async () => {
     if (!user) return;
@@ -44,9 +42,7 @@ function DashboardContent({ onLogout }: { onLogout: () => void }) {
 
   const handleMarkNotificationRead = async (id: string) => {
     await markNotificationRead(id);
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
-    );
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
   };
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
@@ -54,17 +50,12 @@ function DashboardContent({ onLogout }: { onLogout: () => void }) {
   const renderContent = () => {
     if (user?.role === 'admin') {
       switch (activeTab) {
-        case 'import':
-          return <ExcelImportPage />;
-        case 'analytics':
-          return <AnalyticsPage />;
-        case 'units':
-          return <UnitsManagementPage />;
-        default:
-          return <AdminDashboard />;
+        case 'import': return <ExcelImportPage />;
+        case 'analytics': return <AnalyticsPage />;
+        case 'units': return <UnitsManagementPage />;
+        default: return <AdminDashboard />;
       }
     }
-
     return <UnitDashboard />;
   };
 
@@ -93,14 +84,10 @@ function App() {
 
   useEffect(() => {
     const stored = localStorage.getItem('vaccination_user');
-    if (stored) {
-      setIsAuthenticated(true);
-    }
+    if (stored) setIsAuthenticated(true);
   }, []);
 
-  const handleLogin = () => {
-    setIsAuthenticated(true);
-  };
+  const handleLogin = () => setIsAuthenticated(true);
 
   return (
     <AuthProvider>

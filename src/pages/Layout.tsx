@@ -13,12 +13,7 @@ interface LayoutProps {
 }
 
 export default function Layout({
-  children,
-  activeTab,
-  onTabChange,
-  notificationCount,
-  onNotificationClick,
-  onLogout,
+  children, activeTab, onTabChange, notificationCount, onNotificationClick, onLogout,
 }: LayoutProps) {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -30,10 +25,7 @@ export default function Layout({
     { id: 'units', label: 'الوحدات', icon: Building2 },
   ];
 
-  const unitTabs = [
-    { id: 'dashboard', label: 'لوحة التحكم', icon: LayoutDashboard },
-  ];
-
+  const unitTabs = [{ id: 'dashboard', label: 'لوحة التحكم', icon: LayoutDashboard }];
   const tabs = user?.role === 'admin' ? adminTabs : unitTabs;
 
   return (
@@ -50,20 +42,11 @@ export default function Layout({
                 <p className="text-emerald-100 text-xs">للأطفال المتخلفين عن التطعيم</p>
               </div>
             </div>
-
             <div className="flex items-center gap-4">
-              <button
-                onClick={toggleTheme}
-                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-                title={theme === 'light' ? 'الوضع الداكن' : 'الوضع الفاتح'}
-              >
+              <button onClick={toggleTheme} className="p-2 hover:bg-white/20 rounded-lg transition-colors" title={theme === 'light' ? 'الوضع الداكن' : 'الوضع الفاتح'}>
                 {theme === 'light' ? <Moon className="w-6 h-6" /> : <Sun className="w-6 h-6" />}
               </button>
-
-              <button
-                onClick={onNotificationClick}
-                className="relative p-2 hover:bg-white/20 rounded-lg transition-colors"
-              >
+              <button onClick={onNotificationClick} className="relative p-2 hover:bg-white/20 rounded-lg transition-colors">
                 <Bell className="w-6 h-6" />
                 {notificationCount > 0 && (
                   <span className="absolute -top-1 -left-1 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
@@ -71,50 +54,34 @@ export default function Layout({
                   </span>
                 )}
               </button>
-
               <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-lg">
                 {user?.role === 'admin' ? <User className="w-5 h-5" /> : <Building2 className="w-5 h-5" />}
-                <span className="text-sm font-medium">
-                  {user?.role === 'admin' ? 'المدير' : user?.unit_name}
-                </span>
+                <span className="text-sm font-medium">{user?.role === 'admin' ? 'المدير' : user?.unit_name}</span>
               </div>
-
-              <button
-                onClick={onLogout}
-                className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg transition-colors"
-              >
-                <LogOut className="w-5 h-5" />
-                <span className="text-sm">خروج</span>
+              <button onClick={onLogout} className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg transition-colors">
+                <LogOut className="w-5 h-5" /><span className="text-sm">خروج</span>
               </button>
             </div>
           </div>
         </div>
       </header>
-
       <nav className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 shadow-sm transition-colors duration-300">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex gap-2 py-3">
             {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => onTabChange(tab.id)}
+              <button key={tab.id} onClick={() => onTabChange(tab.id)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
                   activeTab === tab.id
                     ? 'bg-emerald-600 text-white shadow-md'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                }`}
-              >
-                <tab.icon className="w-5 h-5" />
-                {tab.label}
+                }`}>
+                <tab.icon className="w-5 h-5" />{tab.label}
               </button>
             ))}
           </div>
         </div>
       </nav>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {children}
-      </main>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">{children}</main>
     </div>
   );
 }

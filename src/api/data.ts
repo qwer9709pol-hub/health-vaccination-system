@@ -57,6 +57,31 @@ export async function deleteChild(id: string): Promise<void> {
   if (error) throw error;
 }
 
+export interface BulkDeleteFilters {
+  unitId?: string;
+  status?: string;
+  dose?: string;
+}
+
+export async function deleteChildrenByFilters(filters: BulkDeleteFilters): Promise<number> {
+  let query = supabase.from('delayed_children').delete();
+
+  if (filters.unitId) {
+    query = query.eq('unit_id', filters.unitId);
+  }
+  if (filters.status) {
+    query = query.eq('status', filters.status);
+  }
+  if (filters.dose) {
+    query = query.eq('dose', filters.dose);
+  }
+
+  const { data, error } = await query.select('id');
+
+  if (error) throw error;
+  return data?.length || 0;
+}
+
 export function calculateKPIs(children: DelayedChild[]): KPIs {
   const total = children.length;
 
@@ -80,18 +105,8 @@ export function calculateKPIs(children: DelayedChild[]): KPIs {
   const completion = total > 0 ? Math.round((vaccinated / total) * 100) : 0;
 
   return {
-    total,
-    vaccinated,
-    notVaccinated,
-    refused,
-    traveling,
-    documentedTravel,
-    sick,
-    transferred,
-    deceased,
-    phoneUnavailable,
-    phoneWrong,
-    completion,
+    total, vaccinated, notVaccinated, refused, traveling, documentedTravel,
+    sick, transferred, deceased, phoneUnavailable, phoneWrong, completion,
   };
 }
 
@@ -102,15 +117,7 @@ export function calculateUnitStats(children: DelayedChild[], units: Unit[]): Uni
     const vaccinated = unitChildren.filter(c => c.status === 'تم التطعيم فى وحدة بتاريخ').length;
     const remaining = total - vaccinated;
     const completion = total > 0 ? Math.round((vaccinated / total) * 100) : 0;
-
-    return {
-      unit_id: unit.id,
-      unit_name: unit.unit_name,
-      total,
-      vaccinated,
-      remaining,
-      completion,
-    };
+    return { unit_id: unit.id, unit_name: unit.unit_name, total, vaccinated, remaining, completion };
   });
 }
 
@@ -145,14 +152,6 @@ export async function addFollowUpHistory(
 ) {
   const { error } = await supabase
     .from('follow_up_history')
-    .insert([
-      {
-        child_id: childId,
-        status,
-        notes,
-        changed_by: changedBy,
-      },
-    ]);
-
+    .insert([{ child_id: childId, status, notes, changed_by: changedBy }]);
   if (error) throw error;
 }
