@@ -112,8 +112,6 @@ export default function AdminDashboard() {
   } catch (error) {
     console.error('Error deleting child:', error);
     alert('حدث خطأ أثناء الحذف');
-  }
-};
 
 // ضع الدالة الجديدة هنا مباشرة
 const handleDeleteUnitChildren = async () => {
