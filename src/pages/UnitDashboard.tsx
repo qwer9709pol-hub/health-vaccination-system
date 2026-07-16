@@ -1,10 +1,10 @@
-import ChildProfileModal from '../components/ChildProfileModal';
 import { useState, useEffect, useMemo } from 'react';
 import { Users, CheckCircle, Clock, TrendingUp, Download, XCircle, Plane, Heart } from 'lucide-react';
 import KPICard from '../components/KPICard';
 import ChildrenTable from '../components/ChildrenTable';
 import SearchFilter from '../components/SearchFilter';
 import EditChildModal from '../components/EditChildModal';
+import ChildProfileModal from '../components/ChildProfileModal';
 import { DelayedChild, KPIs } from '../types';
 import { useAuth } from '../auth/AuthContext';
 import { fetchChildren, updateChild, calculateKPIs } from '../api/data';
@@ -51,27 +51,15 @@ export default function UnitDashboard() {
   const [selectedChild, setSelectedChild] = useState<DelayedChild | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const [kpis, setKPIs] = useState<KPIs>({
-    total: 0,
-    vaccinated: 0,
-    notVaccinated: 0,
-    refused: 0,
-    traveling: 0,
-    documentedTravel: 0,
-    sick: 0,
-    transferred: 0,
-    deceased: 0,
-    phoneUnavailable: 0,
-    phoneWrong: 0,
-    completion: 0,
+    total: 0, vaccinated: 0, notVaccinated: 0, refused: 0, traveling: 0,
+    documentedTravel: 0, sick: 0, transferred: 0, deceased: 0,
+    phoneUnavailable: 0, phoneWrong: 0, completion: 0,
   });
 
-  useEffect(() => {
-    loadData();
-  }, [user?.unit_id]);
+  useEffect(() => { loadData(); }, [user?.unit_id]);
 
   const loadData = async () => {
     if (!user?.unit_id) return;
-
     try {
       setLoading(true);
       const data = await fetchChildren(user.unit_id);
@@ -157,7 +145,7 @@ export default function UnitDashboard() {
       }
     }
     ws['!freeze'] = { xSplit: 0, ySplit: 1 };
-    ws['!autofilter'] = { ref: ws['!ref'] };
+    ws['!autofilter'] = { ref: ws['!ref'] || 'A1' };
 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'الأطفال المتخلفين');
@@ -212,24 +200,12 @@ export default function UnitDashboard() {
           children={filteredChildren}
           loading={loading}
           onEdit={setEditingChild}
-          onView={(child) => {
-            setSelectedChild(child);
-            setProfileOpen(true);
-          }}
+          onView={(child) => { setSelectedChild(child); setProfileOpen(true); }}
         />
       </div>
 
-      <EditChildModal
-        child={editingChild}
-        isOpen={!!editingChild}
-        onClose={() => setEditingChild(null)}
-        onSave={handleSaveChild}
-      />
-      <ChildProfileModal
-        child={selectedChild}
-        isOpen={profileOpen}
-        onClose={() => setProfileOpen(false)}
-      />
+      <EditChildModal child={editingChild} isOpen={!!editingChild} onClose={() => setEditingChild(null)} onSave={handleSaveChild} />
+      <ChildProfileModal child={selectedChild} isOpen={profileOpen} onClose={() => setProfileOpen(false)} />
     </div>
   );
 }

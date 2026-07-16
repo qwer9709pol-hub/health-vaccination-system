@@ -1,5 +1,5 @@
 import React from 'react';
-import { Edit2, Check, X, Clock, Home, Plane, UserX, HelpCircle, Heart, PhoneOff, ShieldCheck, ArrowRight, XCircle, Trash2 } from 'lucide-react';
+import { Edit2, Check, X, Clock, Plane, UserX, HelpCircle, Heart, PhoneOff, ShieldCheck, ArrowRight, XCircle, Trash2 } from 'lucide-react';
 import { DelayedChild, STATUS_CONFIG, ChildStatus } from '../types';
 
 interface ChildrenTableProps {
@@ -9,8 +9,6 @@ interface ChildrenTableProps {
   onEdit: (child: DelayedChild) => void;
   onView?: (child: DelayedChild) => void;
   onDelete?: (child: DelayedChild) => void;
-
-  isAdmin?: boolean;
 }
 
 const statusIcons: Record<ChildStatus, React.ReactNode> = {
@@ -23,6 +21,7 @@ const statusIcons: Record<ChildStatus, React.ReactNode> = {
   'الهاتف غير متاح': <PhoneOff className="w-3 h-3" />,
   'الهاتف مغلق': <PhoneOff className="w-3 h-3" />,
   'رفض': <X className="w-3 h-3" />,
+  'منزل مغلق': <Clock className="w-3 h-3" />,
   'تم التحويل الى اقرب وحدة': <ArrowRight className="w-3 h-3" />,
   'متوفى': <XCircle className="w-3 h-3" />,
 };
@@ -34,7 +33,6 @@ export default function ChildrenTable({
   onEdit,
   onView,
   onDelete,
-  isAdmin = false,
 }: ChildrenTableProps) {
   if (loading) {
     return (
@@ -118,10 +116,7 @@ export default function ChildrenTable({
                 statusKey === 'تم التحويل الى اقرب وحدة' ? 'bg-purple-50 dark:bg-purple-900/20' : '';
 
               return (
-                <tr
-                  key={child.id}
-                  className={`transition-colors hover:brightness-95 dark:hover:brightness-110 ${rowBgClass}`}
-                >
+                <tr key={child.id} className={`transition-colors hover:brightness-95 dark:hover:brightness-110 ${rowBgClass}`}>
                   {showUnit && (
                     <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{child.unit?.unit_name || '-'}</td>
                   )}
@@ -144,7 +139,7 @@ export default function ChildrenTable({
                     {child.phone_number ? (
                       <div className="flex items-center gap-2">
                         <a href={`tel:${child.phone_number}`} title="اتصال" className="text-blue-600 dark:text-blue-400 hover:text-blue-800">📞</a>
-                        <a href={`https://wa.me/2${child.phone_number.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer" title="واتساب" className="text-green-600 dark:text-green-400 hover:text-green-800">🟢</a>
+                        <a href={`https://wa.me/2${child.phone_number.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer" title="واتساب" className="text-green-600 dark:text-green-400 hover:text-green-800">💬</a>
                         <span className="text-gray-900 dark:text-white">{child.phone_number}</span>
                       </div>
                     ) : '-'}
@@ -153,7 +148,7 @@ export default function ChildrenTable({
                     {child.reporter_phone ? (
                       <div className="flex items-center gap-2">
                         <a href={`tel:${child.reporter_phone}`} title="اتصال" className="text-blue-600 dark:text-blue-400 hover:text-blue-800">📞</a>
-                        <a href={`https://wa.me/2${child.reporter_phone.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer" title="واتساب" className="text-green-600 dark:text-green-400 hover:text-green-800">🟢</a>
+                        <a href={`https://wa.me/2${child.reporter_phone.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer" title="واتساب" className="text-green-600 dark:text-green-400 hover:text-green-800">💬</a>
                         <span className="text-gray-900 dark:text-white">{child.reporter_phone}</span>
                       </div>
                     ) : '-'}
@@ -181,7 +176,7 @@ export default function ChildrenTable({
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
-                     {isAdmin && onDelete && (
+                      {onDelete && (
                         <button
                           onClick={() => onDelete(child)}
                           className="inline-flex items-center justify-center p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"

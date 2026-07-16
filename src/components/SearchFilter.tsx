@@ -78,9 +78,7 @@ export default function SearchFilter({
           >
             <option value="">كل الجرعات</option>
             {doses.map((dose) => (
-              <option key={dose} value={dose}>
-                {dose}
-              </option>
+              <option key={dose} value={dose}>{dose}</option>
             ))}
           </select>
         </div>
@@ -95,9 +93,7 @@ export default function SearchFilter({
           >
             <option value="">كل الوحدات</option>
             {units.map((unit) => (
-              <option key={unit} value={unit}>
-                {unit}
-              </option>
+              <option key={unit} value={unit}>{unit}</option>
             ))}
           </select>
         </div>

@@ -124,13 +124,3 @@ export interface UnitStats {
   remaining: number;
   completion: number;
 }
-
-export interface RiskScore {
-  unit_id: string;
-  unit_name: string;
-  risk_score: number;
-  risk_level: 'low' | 'medium' | 'high';
-  delayed_count: number;
-  vaccination_rate: number;
-  overdue_cases: number;
-}

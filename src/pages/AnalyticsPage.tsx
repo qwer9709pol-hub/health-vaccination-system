@@ -1,37 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
-  Users,
-  CheckCircle,
-  Clock,
-  XCircle,
-  Plane,
-  Heart,
-  TrendingUp,
-  TrendingDown,
-  AlertTriangle,
-  BarChart3,
-  PieChart as PieIcon,
-  Activity,
-  PhoneOff,
-  ArrowUpDown,
-  Calendar,
+  Users, CheckCircle, Clock, XCircle, Plane, Heart, TrendingUp,
+  AlertTriangle, BarChart3, PieChart as PieIcon, Activity, PhoneOff, ArrowUpDown,
 } from 'lucide-react';
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  LineChart,
-  Line,
-  Legend,
-  ComposedChart,
-  Area,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, LineChart, Line, Legend, ComposedChart,
 } from 'recharts';
 import { DelayedChild, Unit, KPIs, UnitStats } from '../types';
 import { fetchChildren, fetchUnits, calculateUnitStats, calculateKPIs } from '../api/data';
@@ -69,9 +43,7 @@ export default function AnalyticsPage() {
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
   const loadData = async () => {
     try {
@@ -116,9 +88,7 @@ export default function AnalyticsPage() {
       statusCounts[status] = (statusCounts[status] || 0) + 1;
     });
     return Object.entries(statusCounts).map(([name, value]) => ({
-      name,
-      value,
-      color: STATUS_COLORS[name] || '#6b7280',
+      name, value, color: STATUS_COLORS[name] || '#6b7280',
     }));
   }, [filteredChildren]);
 
@@ -152,10 +122,7 @@ export default function AnalyticsPage() {
   }, [filteredChildren]);
 
   const clearFilters = () => {
-    setUnitFilter('');
-    setStatusFilter('');
-    setDateFrom('');
-    setDateTo('');
+    setUnitFilter(''); setStatusFilter(''); setDateFrom(''); setDateTo('');
   };
 
   if (loading) {
@@ -180,27 +147,20 @@ export default function AnalyticsPage() {
         </button>
       </div>
 
-      {/* Filters */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-4 transition-colors duration-300">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الوحدة</label>
-            <select
-              value={unitFilter}
-              onChange={(e) => setUnitFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-white"
-            >
+            <select value={unitFilter} onChange={(e) => setUnitFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-white">
               <option value="">كل الوحدات</option>
               {units.map((u) => (<option key={u.id} value={u.unit_name}>{u.unit_name}</option>))}
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الحالة</label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-white"
-            >
+            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-white">
               <option value="">كل الحالات</option>
               <option value="تم التطعيم فى وحدة بتاريخ">تم التطعيم</option>
               <option value="لم يتم التطعيم">لم يتم التطعيم</option>
@@ -214,26 +174,17 @@ export default function AnalyticsPage() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">من تاريخ</label>
-            <input
-              type="date"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-white"
-            />
+            <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-white" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">إلى تاريخ</label>
-            <input
-              type="date"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-white"
-            />
+            <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white dark:bg-gray-700 dark:text-white" />
           </div>
         </div>
       </div>
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-4">
         <KPICard title="إجمالي الأطفال" value={kpis.total} color="blue" icon={<Users className="w-5 h-5" />} />
         <KPICard title="تم التطعيم" value={kpis.vaccinated} color="emerald" icon={<CheckCircle className="w-5 h-5" />} />
@@ -252,7 +203,6 @@ export default function AnalyticsPage() {
         <KPICard title="الهاتف خطأ" value={kpis.phoneWrong} color="gray" icon={<PhoneOff className="w-5 h-5" />} />
       </div>
 
-      {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6">
           <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
@@ -281,7 +231,8 @@ export default function AnalyticsPage() {
           <div className="h-80 flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={statusDistribution} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value" label={({ name, percent }) => `${name} (${((percent || 0) * 100).toFixed(0)}٪)`} labelLine={false}>
+                <Pie data={statusDistribution} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value"
+                  label={({ name, percent }) => `${name} (${((percent || 0) * 100).toFixed(0)}٪)`} labelLine={false}>
                   {statusDistribution.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.color} />))}
                 </Pie>
                 <Tooltip contentStyle={chartTooltipStyle} />
@@ -292,7 +243,6 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {/* Charts Row 2 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {monthlyTrend.length > 0 && (
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6">
@@ -351,7 +301,6 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {/* Units Ranking Table */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden">
         <div className="px-6 py-4 border-b dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
           <h3 className="font-semibold text-gray-900 dark:text-white">ترتيب الوحدات حسب الأداء</h3>
@@ -410,7 +359,6 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {/* Summary Card */}
       <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-xl p-6 text-white">
         <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><Activity className="w-6 h-6" />ملخص الأداء العام</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

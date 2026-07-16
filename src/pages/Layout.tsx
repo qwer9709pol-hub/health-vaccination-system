@@ -1,5 +1,5 @@
 import React from 'react';
-import { LogOut, Bell, Shield, User, Building2, BarChart3, FileSpreadsheet, LayoutDashboard, Moon, Sun, PlusCircle } from 'lucide-react';
+import { LogOut, Bell, Shield, User, Building2, BarChart3, FileSpreadsheet, LayoutDashboard, Moon, Sun } from 'lucide-react';
 import { useAuth } from '../auth/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
@@ -57,11 +57,7 @@ export default function Layout({
                 className="p-2 hover:bg-white/20 rounded-lg transition-colors"
                 title={theme === 'light' ? 'الوضع الداكن' : 'الوضع الفاتح'}
               >
-                {theme === 'light' ? (
-                  <Moon className="w-6 h-6" />
-                ) : (
-                  <Sun className="w-6 h-6" />
-                )}
+                {theme === 'light' ? <Moon className="w-6 h-6" /> : <Sun className="w-6 h-6" />}
               </button>
 
               <button
@@ -77,11 +73,7 @@ export default function Layout({
               </button>
 
               <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-lg">
-                {user?.role === 'admin' ? (
-                  <User className="w-5 h-5" />
-                ) : (
-                  <Building2 className="w-5 h-5" />
-                )}
+                {user?.role === 'admin' ? <User className="w-5 h-5" /> : <Building2 className="w-5 h-5" />}
                 <span className="text-sm font-medium">
                   {user?.role === 'admin' ? 'المدير' : user?.unit_name}
                 </span>

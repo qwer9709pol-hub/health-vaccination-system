@@ -6,15 +6,14 @@ interface LoginPageProps {
   onLogin: () => void;
 }
 
-// قائمة الوحدات الصحية الثابتة التي طلبتها
 const healthUnitsList = [
-  'ميت غمر', 'دقادوس', 'كوم النور', 'دماص', 'سنفا', 'أتميدة', 'بشلا', 
-  'أوليلة', 'صهرجت الكبرى', 'كفر المقدام', 'ميت الفرماوي', 'ميت محسن', 
-  'ميت أبو خالد', 'دنديط', 'ميت القرشي', 'تفهنا الأشراف', 'سنتماي', 
-  'بشالوش', 'كفور البهايتة', 'سمبو مقام', 'البوها', 'كفر النعمان', 
-  'سرنجا', 'كفر سرنجا', 'كفر بهيدة', 'ميت ناجي', 'المعصرة', 'ميت العز', 
-  'كفر ميت العز', 'هلا', 'القيطون', 'كفر الشيخ هلال', 'جصفا', 'ميت يعيش', 
-  'الرحمانية', 'الدبونية', 'كفر الوزير', 'كفر الشراقوة', 'أبو نبهان', 
+  'ميت غمر', 'دقادوس', 'كوم النور', 'دماص', 'سنفا', 'أتميدة', 'بشلا',
+  'أوليلة', 'صهرجت الكبرى', 'كفر المقدام', 'ميت الفرماوي', 'ميت محسن',
+  'ميت أبو خالد', 'دنديط', 'ميت القرشي', 'تفهنا الأشراف', 'سنتماي',
+  'بشالوش', 'كفور البهايتة', 'سمبو مقام', 'البوها', 'كفر النعمان',
+  'سرنجا', 'كفر سرنجا', 'كفر بهيدة', 'ميت ناجي', 'المعصرة', 'ميت العز',
+  'كفر ميت العز', 'هلا', 'القيطون', 'كفر الشيخ هلال', 'جصفا', 'ميت يعيش',
+  'الرحمانية', 'الدبونية', 'كفر الوزير', 'كفر الشراقوة', 'أبو نبهان',
   'بهيدة', 'كفر الهجرسي', 'كفر المحمدية', 'رعاية أول'
 ];
 
@@ -32,10 +31,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     const result = await login(selectedUnit, password);
     setLoading(false);
-
     if (result.success) {
       onLogin();
     } else {
@@ -47,10 +44,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     const result = await adminLogin(username, adminPassword);
     setLoading(false);
-
     if (result.success) {
       onLogin();
     } else {
@@ -115,13 +110,10 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                   >
                     <option value="">-- اختر الوحدة --</option>
                     {healthUnitsList.map((unitName, index) => (
-                      <option key={index} value={unitName}>
-                        {unitName}
-                      </option>
+                      <option key={index} value={unitName}>{unitName}</option>
                     ))}
                   </select>
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">كلمة المرور</label>
                   <div className="relative">
@@ -136,7 +128,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                     />
                   </div>
                 </div>
-
                 <button
                   type="submit"
                   disabled={loading}
@@ -145,10 +136,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                   {loading ? (
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   ) : (
-                    <>
-                      <span>تسجيل الدخول</span>
-                      <ArrowLeft className="w-5 h-5" />
-                    </>
+                    <><span>تسجيل الدخول</span><ArrowLeft className="w-5 h-5" /></>
                   )}
                 </button>
               </form>
@@ -168,7 +156,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                     />
                   </div>
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">كلمة المرور</label>
                   <div className="relative">
@@ -183,7 +170,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                     />
                   </div>
                 </div>
-
                 <button
                   type="submit"
                   disabled={loading}
@@ -192,10 +178,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                   {loading ? (
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   ) : (
-                    <>
-                      <span>تسجيل الدخول</span>
-                      <ArrowLeft className="w-5 h-5" />
-                    </>
+                    <><span>تسجيل الدخول</span><ArrowLeft className="w-5 h-5" /></>
                   )}
                 </button>
               </form>

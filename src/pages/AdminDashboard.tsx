@@ -12,7 +12,6 @@ import {
   fetchUnits,
   updateChild,
   deleteChild,
-  deleteChildrenByUnit,
   calculateKPIs,
   calculateUnitStats,
 } from '../api/data';
@@ -59,34 +58,19 @@ export default function AdminDashboard() {
   const [selectedChild, setSelectedChild] = useState<DelayedChild | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const [kpis, setKPIs] = useState<KPIs>({
-    total: 0,
-    vaccinated: 0,
-    notVaccinated: 0,
-    refused: 0,
-    traveling: 0,
-    documentedTravel: 0,
-    sick: 0,
-    transferred: 0,
-    deceased: 0,
-    phoneUnavailable: 0,
-    phoneWrong: 0,
-    completion: 0,
+    total: 0, vaccinated: 0, notVaccinated: 0, refused: 0, traveling: 0,
+    documentedTravel: 0, sick: 0, transferred: 0, deceased: 0,
+    phoneUnavailable: 0, phoneWrong: 0, completion: 0,
   });
   const [units, setUnits] = useState<Unit[]>([]);
   const [unitStats, setUnitStats] = useState<UnitStats[]>([]);
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
   const loadData = async () => {
     try {
       setLoading(true);
-      const [childrenData, unitsData] = await Promise.all([
-        fetchChildren(),
-        fetchUnits(),
-      ]);
-
+      const [childrenData, unitsData] = await Promise.all([fetchChildren(), fetchUnits()]);
       setChildren(childrenData);
       setUnits(unitsData);
       setKPIs(calculateKPIs(childrenData));
@@ -102,27 +86,7 @@ export default function AdminDashboard() {
     await updateChild(id, updates);
     await loadData();
   };
-const handleDeleteUnitChildren = async () => {
-  if (!unitFilter) {
-    alert('اختر الوحدة أولاً');
-    return;
-  }
 
-  const confirmDelete = window.confirm(
-    `هل أنت متأكد من حذف جميع أطفال وحدة "${unitFilter}"؟\n\nلا يمكن التراجع عن هذه العملية.`
-  );
-
-  if (!confirmDelete) return;
-
-  try {
-    await deleteChildrenByUnit(unitFilter);
-    await loadData();
-    alert('تم حذف جميع أطفال الوحدة بنجاح');
-  } catch (error) {
-    console.error(error);
-    alert('حدث خطأ أثناء الحذف');
-  }
-};
   const handleDeleteChild = async (child: DelayedChild) => {
     if (!confirm(`هل أنت متأكد من حذف الطفل "${child.child_name}"؟`)) return;
     try {
@@ -150,7 +114,6 @@ const handleDeleteUnitChildren = async () => {
         child.address?.toLowerCase().includes(q) ||
         child.dose?.toLowerCase().includes(q) ||
         child.unit?.unit_name?.toLowerCase().includes(q);
-
       return matchesStatus && matchesUnit && matchesDose && matchesSearch;
     });
   }, [children, searchQuery, statusFilter, unitFilter, doseFilter]);
@@ -211,7 +174,7 @@ const handleDeleteUnitChildren = async () => {
       }
     }
     ws['!freeze'] = { xSplit: 0, ySplit: 1 };
-    ws['!autofilter'] = { ref: ws['!ref'] };
+    ws['!autofilter'] = { ref: ws['!ref'] || 'A1' };
 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'الأطفال المتخلفين');
@@ -248,7 +211,6 @@ const handleDeleteUnitChildren = async () => {
         </button>
       </div>
 
-      {/* الصف الأول */}
       <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4">
         <KPICard title="إجمالي الأطفال" value={kpis.total} color="blue" icon={<Users className="w-5 h-5" />} />
         <KPICard title="تم التطعيم" value={kpis.vaccinated} color="emerald" icon={<CheckCircle className="w-5 h-5" />} />
@@ -259,7 +221,6 @@ const handleDeleteUnitChildren = async () => {
         <KPICard title="نسبة الإنجاز" value={kpis.completion} suffix="٪" color="emerald" icon={<TrendingUp className="w-5 h-5" />} />
       </div>
 
-      {/* الصف الثاني */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <KPICard title="مسافر موثق" value={kpis.documentedTravel} color="purple" icon={<Plane className="w-5 h-5" />} />
         <KPICard title="محول" value={kpis.transferred} color="teal" icon={<TrendingUp className="w-5 h-5" />} />
@@ -304,18 +265,9 @@ const handleDeleteUnitChildren = async () => {
           <div className="h-64 flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie
-                  data={statusPieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={90}
-                  dataKey="value"
-                  label={({ name, percent }) => `${name} (${((percent || 0) * 100).toFixed(0)}٪)`}
-                >
-                  {statusPieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
+                <Pie data={statusPieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} dataKey="value"
+                  label={({ name, percent }) => `${name} (${((percent || 0) * 100).toFixed(0)}٪)`}>
+                  {statusPieData.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.color} />))}
                 </Pie>
                 <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px' }} />
               </PieChart>
@@ -345,21 +297,12 @@ const handleDeleteUnitChildren = async () => {
                   <tr key={stat.unit_id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{stat.unit_name}</td>
                     <td className="px-4 py-3 text-center text-gray-600 dark:text-gray-400">{stat.total}</td>
-                    <td className="px-4 py-3 text-center">
-                      <span className="text-emerald-600 font-medium">{stat.vaccinated}</span>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <span className="text-orange-600 font-medium">{stat.remaining}</span>
-                    </td>
+                    <td className="px-4 py-3 text-center"><span className="text-emerald-600 font-medium">{stat.vaccinated}</span></td>
+                    <td className="px-4 py-3 text-center"><span className="text-orange-600 font-medium">{stat.remaining}</span></td>
                     <td className="px-4 py-3 text-center">
                       <div className="flex items-center justify-center gap-2">
                         <div className="w-20 h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full ${
-                              stat.completion >= 70 ? 'bg-emerald-500' : stat.completion >= 40 ? 'bg-orange-500' : 'bg-red-500'
-                            }`}
-                            style={{ width: `${stat.completion}%` }}
-                          />
+                          <div className={`h-full rounded-full ${stat.completion >= 70 ? 'bg-emerald-500' : stat.completion >= 40 ? 'bg-orange-500' : 'bg-red-500'}`} style={{ width: `${stat.completion}%` }} />
                         </div>
                         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{stat.completion}٪</span>
                       </div>
@@ -374,15 +317,6 @@ const handleDeleteUnitChildren = async () => {
 
       <div className="space-y-4">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white">قائمة الأطفال المتخلفين</h2>
-        <div className="flex justify-end mb-3">
-  <button
-    onClick={handleDeleteUnitChildren}
-    disabled={!unitFilter}
-    className="bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg font-medium transition"
-  >
-    حذف أطفال هذه الوحدة
-  </button>
-</div>
         <SearchFilter
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
@@ -400,25 +334,13 @@ const handleDeleteUnitChildren = async () => {
           loading={loading}
           showUnit
           onEdit={setEditingChild}
-          onView={(child) => {
-            setSelectedChild(child);
-            setProfileOpen(true);
-          }}
+          onView={(child) => { setSelectedChild(child); setProfileOpen(true); }}
           onDelete={handleDeleteChild}
         />
       </div>
 
-      <EditChildModal
-        child={editingChild}
-        isOpen={!!editingChild}
-        onClose={() => setEditingChild(null)}
-        onSave={handleSaveChild}
-      />
-      <ChildProfileModal
-        child={selectedChild}
-        isOpen={profileOpen}
-        onClose={() => setProfileOpen(false)}
-      />
+      <EditChildModal child={editingChild} isOpen={!!editingChild} onClose={() => setEditingChild(null)} onSave={handleSaveChild} />
+      <ChildProfileModal child={selectedChild} isOpen={profileOpen} onClose={() => setProfileOpen(false)} />
     </div>
   );
 }

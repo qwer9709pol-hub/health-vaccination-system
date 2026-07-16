@@ -40,7 +40,7 @@ export default function EditChildModal({ child, isOpen, onClose, onSave }: EditC
 
   const handleStatusChange = (newStatus: ChildStatus) => {
     setStatus(newStatus);
-    if (newStatus === 'تم التطعيم' || newStatus === 'تم التطعيم بتاريخ') {
+    if (newStatus === 'تم التطعيم فى وحدة بتاريخ') {
       if (!vaccinationDate) {
         setVaccinationDate(new Date().toISOString().split('T')[0]);
       }
@@ -91,10 +91,6 @@ export default function EditChildModal({ child, isOpen, onClose, onSave }: EditC
         status,
         follow_up_notes: notes,
       };
-
-      if (status === 'تم التطعيم' || status === 'تم التطعيم بتاريخ') {
-        updates.vaccination_date = vaccinationDate;
-      }
 
       if (status === 'تم التطعيم فى وحدة بتاريخ') {
         (updates as any).vaccination_place = vaccinationPlace;
@@ -189,7 +185,7 @@ export default function EditChildModal({ child, isOpen, onClose, onSave }: EditC
             </div>
           </div>
 
-          {(status === 'تم التطعيم' || status === 'تم التطعيم بتاريخ') && (
+          {status === 'تم التطعيم فى وحدة بتاريخ' && (
             <div className="bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 rounded-lg p-4">
               <label className="flex items-center gap-2 text-sm font-medium text-emerald-800 dark:text-emerald-300 mb-2">
                 <Calendar className="w-4 h-4" />
@@ -328,10 +324,7 @@ export default function EditChildModal({ child, isOpen, onClose, onSave }: EditC
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
-                <>
-                  <Save className="w-5 h-5" />
-                  <span>حفظ التغييرات</span>
-                </>
+                <><Save className="w-5 h-5" /><span>حفظ التغييرات</span></>
               )}
             </button>
             <button

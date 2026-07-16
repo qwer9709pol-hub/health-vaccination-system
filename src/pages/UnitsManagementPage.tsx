@@ -13,18 +13,12 @@ export default function UnitsManagementPage() {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    loadUnits();
-  }, []);
+  useEffect(() => { loadUnits(); }, []);
 
   const loadUnits = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('units')
-        .select('*')
-        .order('unit_name');
-
+      const { data, error } = await supabase.from('units').select('*').order('unit_name');
       if (error) throw error;
       setUnits(data || []);
     } catch (err) {
@@ -69,24 +63,15 @@ export default function UnitsManagementPage() {
       if (editingUnit) {
         const { error } = await supabase
           .from('units')
-          .update({
-            unit_name: unitName.trim(),
-            unit_code: unitCode ? parseInt(unitCode) : null,
-          })
+          .update({ unit_name: unitName.trim(), unit_code: unitCode ? parseInt(unitCode) : null })
           .eq('id', editingUnit.id);
-
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('units')
-          .insert({
-            unit_name: unitName.trim(),
-            unit_code: unitCode ? parseInt(unitCode) : null,
-          });
-
+          .insert({ unit_name: unitName.trim(), unit_code: unitCode ? parseInt(unitCode) : null });
         if (error) throw error;
       }
-
       await loadUnits();
       handleCloseModal();
     } catch (err: any) {
@@ -97,16 +82,9 @@ export default function UnitsManagementPage() {
   };
 
   const handleDelete = async (unit: Unit) => {
-    if (!confirm(`هل أنت متأكد من حذف الوحدة "${unit.unit_name}"؟\n\nسيتم حذف جميع الأطفال المرتبطين بهذه الوحدة.`)) {
-      return;
-    }
-
+    if (!confirm(`هل أنت متأكد من حذف الوحدة "${unit.unit_name}"؟\n\nسيتم حذف جميع الأطفال المرتبطين بهذه الوحدة.`)) return;
     try {
-      const { error } = await supabase
-        .from('units')
-        .delete()
-        .eq('id', unit.id);
-
+      const { error } = await supabase.from('units').delete().eq('id', unit.id);
       if (error) throw error;
       await loadUnits();
     } catch (err: any) {
@@ -166,18 +144,10 @@ export default function UnitsManagementPage() {
                   </td>
                   <td className="px-4 py-3 text-center">
                     <div className="flex items-center justify-center gap-2">
-                      <button
-                        onClick={() => handleOpenModal(unit)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                        title="تعديل"
-                      >
+                      <button onClick={() => handleOpenModal(unit)} className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors" title="تعديل">
                         <Edit2 className="w-4 h-4" />
                       </button>
-                      <button
-                        onClick={() => handleDelete(unit)}
-                        className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-                        title="حذف"
-                      >
+                      <button onClick={() => handleDelete(unit)} className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors" title="حذف">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -187,7 +157,6 @@ export default function UnitsManagementPage() {
             </tbody>
           </table>
         </div>
-
         {units.length === 0 && (
           <div className="p-8 text-center text-gray-500 dark:text-gray-400">
             <Building2 className="w-12 h-12 mx-auto mb-3 opacity-50" />
@@ -196,19 +165,15 @@ export default function UnitsManagementPage() {
         )}
       </div>
 
-      {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md">
             <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4 flex items-center justify-between rounded-t-2xl">
-              <h2 className="text-xl font-bold text-white">
-                {editingUnit ? 'تعديل الوحدة' : 'إضافة وحدة جديدة'}
-              </h2>
+              <h2 className="text-xl font-bold text-white">{editingUnit ? 'تعديل الوحدة' : 'إضافة وحدة جديدة'}</h2>
               <button onClick={handleCloseModal} className="p-1 hover:bg-white/20 rounded-lg transition-colors">
                 <X className="w-6 h-6 text-white" />
               </button>
             </div>
-
             <div className="p-6 space-y-4">
               {error && (
                 <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg">
@@ -216,53 +181,26 @@ export default function UnitsManagementPage() {
                   <span>{error}</span>
                 </div>
               )}
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  اسم الوحدة <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={unitName}
-                  onChange={(e) => setUnitName(e.target.value)}
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">اسم الوحدة <span className="text-red-500">*</span></label>
+                <input type="text" value={unitName} onChange={(e) => setUnitName(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none"
-                  placeholder="أدخل اسم الوحدة"
-                />
+                  placeholder="أدخل اسم الوحدة" />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  كود الوحدة (اختياري)
-                </label>
-                <input
-                  type="number"
-                  value={unitCode}
-                  onChange={(e) => setUnitCode(e.target.value)}
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">كود الوحدة (اختياري)</label>
+                <input type="number" value={unitCode} onChange={(e) => setUnitCode(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none"
-                  placeholder="أدخل كود الوحدة"
-                />
+                  placeholder="أدخل كود الوحدة" />
               </div>
             </div>
-
             <div className="px-6 py-4 border-t dark:border-gray-700 flex gap-3">
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="flex-1 flex items-center justify-center gap-2 bg-emerald-600 text-white py-3 rounded-lg font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50"
-              >
-                {saving ? (
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <Save className="w-5 h-5" />
-                    <span>حفظ</span>
-                  </>
-                )}
+              <button onClick={handleSave} disabled={saving}
+                className="flex-1 flex items-center justify-center gap-2 bg-emerald-600 text-white py-3 rounded-lg font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50">
+                {saving ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><Save className="w-5 h-5" /><span>حفظ</span></>}
               </button>
-              <button
-                onClick={handleCloseModal}
-                className="px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-              >
+              <button onClick={handleCloseModal}
+                className="px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
                 إلغاء
               </button>
             </div>

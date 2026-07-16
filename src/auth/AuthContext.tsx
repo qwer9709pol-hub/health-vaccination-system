@@ -1,11 +1,9 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, Unit } from '../types';
 import { supabase } from '../lib/supabase';
+import { User } from '../types';
 
 interface AuthContextType {
   user: User | null;
-  units: Unit[];
-  loading: boolean;
   login: (unitName: string, password: string) => Promise<{ success: boolean; error?: string }>;
   adminLogin: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
@@ -13,42 +11,10 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const healthUnitsList = [
-  'ميت غمر', 'دقادوس', 'كوم النور', 'دماص', 'سنفا', 'أتميدة', 'بشلا', 
-  'أوليلة', 'صهرجت الكبرى', 'كفر المقدام', 'ميت الفرماوي', 'ميت محسن', 
-  'ميت أبو خالد', 'دنديط', 'ميت القرشي', 'تفهنا الأشراف', 'سنتماي', 
-  'بشالوش', 'كفور البهايتة', 'سمبو مقام', 'البوها', 'كفر النعمان', 
-  'سرنجا', 'كفر سرنجا', 'كفر بهيدة', 'ميت ناجي', 'المعصرة', 'ميت العز', 
-  'كفر ميت العز', 'هلا', 'القيطون', 'كفر الشيخ هلال', 'جصفا', 'ميت يعيش', 
-  'الرحمانية', 'الدبونية', 'كفر الوزير', 'كفر الشراقوة', 'أبو نبهان', 
-  'بهيدة', 'كفر الهجرسي', 'كفر المحمدية', 'رعاية أول'
-];
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [units, setUnits] = useState<Unit[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchUnits();
-    checkSession();
-  }, []);
-
-  const fetchUnits = async () => {
-    const { data } = await supabase.from('units').select('*').order('unit_name');
-    if (data && data.length > 0) {
-      setUnits(data);
-    } else {
-      const localUnits: Unit[] = healthUnitsList.map((name, index) => ({
-        id: String(index + 1),
-        unit_name: name,
-        created_at: new Date().toISOString()
-      }));
-      setUnits(localUnits);
-    }
-  };
-
-  const checkSession = () => {
     const stored = localStorage.getItem('vaccination_user');
     if (stored) {
       try {
@@ -57,50 +23,60 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem('vaccination_user');
       }
     }
-    setLoading(false);
+  }, []);
+
+  const login = async (unitName: string, password: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('units')
+        .select('*')
+        .eq('unit_name', unitName)
+        .eq('password', password)
+        .single();
+
+      if (error || !data) {
+        return { success: false, error: 'اسم الوحدة أو كلمة المرور غير صحيحة' };
+      }
+
+      const user: User = {
+        id: data.id,
+        role: 'unit_user',
+        unit_id: data.id,
+        unit_name: data.unit_name,
+      };
+
+      setUser(user);
+      localStorage.setItem('vaccination_user', JSON.stringify(user));
+      return { success: true };
+    } catch {
+      return { success: false, error: 'حدث خطأ أثناء تسجيل الدخول' };
+    }
   };
 
-  // الخيار الثاني والممتاز: جلب الوحدة بالـ UUID الصحيح من قاعدة البيانات مباشرة
-  const login = async (unitName: string, password: string): Promise<{ success: boolean; error?: string }> => {
-    if (password !== '2468') {
-      return { success: false, error: 'كلمة المرور غير صحيحة' };
+  const adminLogin = async (username: string, password: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('admins')
+        .select('*')
+        .eq('username', username)
+        .eq('password', password)
+        .single();
+
+      if (error || !data) {
+        return { success: false, error: 'اسم المستخدم أو كلمة المرور غير صحيحة' };
+      }
+
+      const user: User = {
+        id: data.id,
+        role: 'admin',
+      };
+
+      setUser(user);
+      localStorage.setItem('vaccination_user', JSON.stringify(user));
+      return { success: true };
+    } catch {
+      return { success: false, error: 'حدث خطأ أثناء تسجيل الدخول' };
     }
-
-    const { data: unit, error: unitError } = await supabase
-      .from('units')
-      .select('*')
-      .eq('unit_name', unitName)
-      .maybeSingle();
-
-    if (unitError || !unit) {
-      return { success: false, error: 'الوحدة غير موجودة في قاعدة البيانات' };
-    }
-
-    const userData: User = {
-      id: `unit_${unit.id}`,
-      role: 'unit_user',
-      unit_id: unit.id,
-      unit_name: unit.unit_name,
-    };
-
-    setUser(userData);
-    localStorage.setItem('vaccination_user', JSON.stringify(userData));
-    return { success: true };
-  };
-
-  const adminLogin = async (username: string, password: string): Promise<{ success: boolean; error?: string }> => {
-    if (username !== 'admin' || password !== 'Admin@2468') {
-      return { success: false, error: 'اسم المستخدم أو كلمة المرور غير صحيحة' };
-    }
-
-    const userData: User = {
-      id: 'admin',
-      role: 'admin',
-    };
-
-    setUser(userData);
-    localStorage.setItem('vaccination_user', JSON.stringify(userData));
-    return { success: true };
   };
 
   const logout = () => {
@@ -109,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, units, loading, login, adminLogin, logout }}>
+    <AuthContext.Provider value={{ user, login, adminLogin, logout }}>
       {children}
     </AuthContext.Provider>
   );
@@ -117,7 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
