@@ -12,7 +12,6 @@ import {
   fetchUnits,
   updateChild,
   deleteChild,
-  deleteChildrenByUnit,
   calculateKPIs,
   calculateUnitStats,
 } from '../api/data';
@@ -104,21 +103,15 @@ export default function AdminDashboard() {
   };
 
   const handleDeleteChild = async (child: DelayedChild) => {
-  if (!confirm(`هل أنت متأكد من حذف الطفل "${child.child_name}"؟`)) return;
-
-  try {
-    await deleteChild(child.id);
-    await loadData();
-  } catch (error) {
-    console.error('Error deleting child:', error);
-    alert('حدث خطأ أثناء الحذف');
-  }
-};
-
-// ضع الدالة الجديدة هنا مباشرة
-const handleDeleteUnitChildren = async () => {
-  // الكود الذي سأعطيه لك
-};
+    if (!confirm(`هل أنت متأكد من حذف الطفل "${child.child_name}"؟`)) return;
+    try {
+      await deleteChild(child.id);
+      await loadData();
+    } catch (error) {
+      console.error('Error deleting child:', error);
+      alert('حدث خطأ أثناء الحذف');
+    }
+  };
 
   const filteredChildren = useMemo(() => {
     return children.filter((child) => {
