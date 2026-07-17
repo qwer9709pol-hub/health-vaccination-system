@@ -2,6 +2,12 @@
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   darkMode: 'class',
-  theme: { extend: {} },
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Cairo', 'sans-serif'],
+      },
+    },
+  },
   plugins: [],
 };

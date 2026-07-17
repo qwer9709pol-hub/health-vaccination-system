@@ -1,53 +1,97 @@
 import { useState } from 'react';
-import { X, Trash2, AlertTriangle, Building2, Filter, Droplet, Loader2 } from 'lucide-react';
-import { STATUS_OPTIONS, STATUS_CONFIG, Unit } from '../types';
-import { deleteChildrenByFilters } from '../api/data';
+import type { Unit, ChildStatus } from '../types';
+import { STATUS_OPTIONS } from '../types';
+import { X, Trash2, AlertTriangle } from 'lucide-react';
 
-interface BulkDeleteModalProps { isOpen: boolean; onClose: () => void; onDeleted: () => void; units: Unit[]; doses: string[]; }
+interface Props {
+  units: Unit[];
+  onClose: () => void;
+  onConfirm: (filters: { unit_id?: string; status?: ChildStatus; dose_number?: number }) => Promise<number>;
+}
 
-export default function BulkDeleteModal({ isOpen, onClose, onDeleted, units, doses }: BulkDeleteModalProps) {
-  const [selectedUnit, setSelectedUnit] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('');
-  const [selectedDose, setSelectedDose] = useState('');
+export default function BulkDeleteModal({ units, onClose, onConfirm }: Props) {
+  const [unitId, setUnitId] = useState<string>('');
+  const [status, setStatus] = useState<ChildStatus | ''>('');
+  const [dose, setDose] = useState<number | ''>('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [result, setResult] = useState<number | null>(null);
 
-  if (!isOpen) return null;
-
-  const handleDelete = async () => {
-    if (!selectedUnit && !selectedStatus && !selectedDose) { setError('من فضلك اختر فلتر واحد على الأقل (وحدة، حالة، أو جرعة)'); return; }
-    const parts: string[] = [];
-    if (selectedUnit) parts.push(`الوحدة: ${selectedUnit}`);
-    if (selectedStatus) parts.push(`الحالة: ${selectedStatus}`);
-    if (selectedDose) parts.push(`الجرعة: ${selectedDose}`);
-    if (!confirm(`هل أنت متأكد من حذف جميع الأطفال المطابقين للفلاتر التالية؟\n\n${parts.join('\n')}\n\nهذا الإجراء لا يمكن التراجع عنه!`)) return;
-    setLoading(true); setError(''); setResult(null);
-    try {
-      const filters: { unitId?: string; status?: string; dose?: string } = {};
-      if (selectedUnit) { const u = units.find((u) => u.unit_name === selectedUnit); if (u) filters.unitId = u.id; }
-      if (selectedStatus) filters.status = selectedStatus;
-      if (selectedDose) filters.dose = selectedDose;
-      const count = await deleteChildrenByFilters(filters);
-      setResult(count); onDeleted();
-    } catch (err: any) { setError(err.message || 'حدث خطأ أثناء الحذف'); } finally { setLoading(false); }
+  const handleConfirm = async () => {
+    setLoading(true);
+    const filters: { unit_id?: string; status?: ChildStatus; dose_number?: number } = {};
+    if (unitId) filters.unit_id = unitId;
+    if (status) filters.status = status as ChildStatus;
+    if (dose) filters.dose_number = Number(dose);
+    const count = await onConfirm(filters);
+    setResult(count);
+    setLoading(false);
   };
 
-  const handleClose = () => { setSelectedUnit(''); setSelectedStatus(''); setSelectedDose(''); setError(''); setResult(null); setLoading(false); onClose(); };
-
   return (
-    <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col" dir="rtl">
-        <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4 flex items-center justify-between rounded-t-2xl flex-shrink-0"><h2 className="text-xl font-bold text-white flex items-center gap-2"><Trash2 className="w-6 h-6" />حذف جماعي للأطفال</h2><button onClick={handleClose} className="p-1 hover:bg-white/20 rounded-lg transition-colors"><X className="w-6 h-6 text-white" /></button></div>
-        <div className="p-6 space-y-5 overflow-y-auto flex-1">
-          <div className="flex items-start gap-3 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg"><AlertTriangle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" /><div><p className="text-sm font-medium text-red-800 dark:text-red-300">تحذير: سيتم حذف جميع الأطفال المطابقين للفلاتر المحددة نهائياً</p><p className="text-xs text-red-700 dark:text-red-400 mt-1">يمكنك الحذف حسب الوحدة، الحالة، الجرعة، أو أي مجموعة منهم</p></div></div>
-          {error && <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg"><AlertTriangle className="w-5 h-5" /><span className="text-sm">{error}</span></div>}
-          {result !== null && <div className="flex items-center gap-2 p-3 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-lg"><Trash2 className="w-5 h-5" /><span className="text-sm">تم حذف {result} طفل بنجاح</span></div>}
-          <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2"><Building2 className="w-4 h-4" />الوحدة الصحية</label><select value={selectedUnit} onChange={(e) => setSelectedUnit(e.target.value)} className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none cursor-pointer"><option value="">كل الوحدات</option>{units.map((u) => <option key={u.id} value={u.unit_name}>{u.unit_name}</option>)}</select></div>
-          <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2"><Filter className="w-4 h-4" />الحالة</label><select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)} className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none cursor-pointer"><option value="">كل الحالات</option>{STATUS_OPTIONS.map((s) => <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>)}</select></div>
-          <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2"><Droplet className="w-4 h-4" />الجرعة</label><select value={selectedDose} onChange={(e) => setSelectedDose(e.target.value)} className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none cursor-pointer"><option value="">كل الجرعات</option>{doses.map((d) => <option key={d} value={d}>{d}</option>)}</select></div>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between p-6 border-b border-slate-200 flex-shrink-0">
+          <h2 className="text-xl font-bold text-red-700 flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5" />
+            حذف جماعي
+          </h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100">
+            <X className="w-5 h-5" />
+          </button>
         </div>
-        <div className="px-6 py-4 border-t dark:border-gray-700 flex gap-3 flex-shrink-0 bg-white dark:bg-gray-800 rounded-b-2xl"><button onClick={handleDelete} disabled={loading || result !== null} className="flex-1 flex items-center justify-center gap-2 bg-red-600 text-white py-3 rounded-lg font-medium hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg">{loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Trash2 className="w-5 h-5" /><span>حذف</span></>}</button><button onClick={handleClose} className="px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">إغلاق</button></div>
+        <div className="p-6 overflow-y-auto flex-1 space-y-4">
+          {result === null ? (
+            <>
+              <div className="bg-red-50 text-red-700 px-4 py-3 rounded-lg text-sm flex items-start gap-2">
+                <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                <span>سيتم حذف جميع السجلات المطابقة للفلاتر المحددة. لا يمكن التراجع عن هذا الإجراء.</span>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">الوحدة</label>
+                <select value={unitId} onChange={e => setUnitId(e.target.value)} className="input-field">
+                  <option value="">كل الوحدات</option>
+                  {units.map(u => <option key={u.id} value={u.id}>{u.unit_name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">الحالة</label>
+                <select value={status} onChange={e => setStatus(e.target.value as ChildStatus | '')} className="input-field">
+                  <option value="">كل الحالات</option>
+                  {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">الجرعة</label>
+                <select value={dose} onChange={e => setDose(e.target.value === '' ? '' : Number(e.target.value))} className="input-field">
+                  <option value="">كل الجرعات</option>
+                  <option value={1}>الجرعة الأولى</option>
+                  <option value={2}>الجرعة الثانية</option>
+                  <option value={3}>الجرعة الثالثة</option>
+                </select>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-8">
+              <div className="text-5xl mb-4">{result > 0 ? '✓' : '!'}</div>
+              <p className="text-lg font-medium text-slate-800">
+                {result > 0 ? `تم حذف ${result} سجل` : 'لا توجد سجلات مطابقة'}
+              </p>
+            </div>
+          )}
+        </div>
+        <div className="flex gap-3 p-6 border-t border-slate-200 flex-shrink-0">
+          {result === null ? (
+            <>
+              <button onClick={handleConfirm} disabled={loading} className="btn-danger flex items-center gap-2 disabled:opacity-50">
+                <Trash2 className="w-5 h-5" />
+                {loading ? 'جاري الحذف...' : 'حذف'}
+              </button>
+              <button onClick={onClose} className="btn-secondary">إلغاء</button>
+            </>
+          ) : (
+            <button onClick={onClose} className="btn-primary w-full">إغلاق</button>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -1,75 +1,111 @@
 import { supabase } from '../lib/supabase';
-import { DelayedChild, Unit, KPIs, UnitStats, Notification } from '../types';
+import type { Child, Unit, DelayedChild, Notification, KPIs, UnitStats, ChildStatus } from '../types';
 
-export async function fetchChildren(unitId?: string): Promise<DelayedChild[]> {
-  let query = supabase.from('delayed_children').select('*, unit:units(*)').order('created_at', { ascending: false });
-  if (unitId) query = query.eq('unit_id', unitId);
-  const { data, error } = await query;
+export async function fetchChildren(): Promise<Child[]> {
+  const { data, error } = await supabase.from('children').select('*').order('created_at', { ascending: false });
+  if (error) throw error;
+  return data || [];
+}
+
+export async function fetchChildrenByUnit(unitId: string): Promise<Child[]> {
+  const { data, error } = await supabase.from('children').select('*').eq('unit_id', unitId).order('created_at', { ascending: false });
   if (error) throw error;
   return data || [];
 }
 
 export async function fetchUnits(): Promise<Unit[]> {
-  const { data, error } = await supabase.from('units').select('*').order('unit_name');
+  const { data, error } = await supabase.from('units').select('*').order('unit_name', { ascending: true });
   if (error) throw error;
   return data || [];
 }
 
-export async function updateChild(id: string, updates: Partial<DelayedChild>, userId?: string): Promise<void> {
-  const updateData: Record<string, unknown> = { ...updates, updated_at: new Date().toISOString(), last_follow_up: new Date().toISOString() };
-  if (updates.status === 'تم التطعيم فى وحدة بتاريخ' && !updates.vaccination_date) updateData.vaccination_date = new Date().toISOString().split('T')[0];
-  const { error } = await supabase.from('delayed_children').update(updateData).eq('id', id);
+export async function addUnit(unit_name: string, password: string = '2468'): Promise<Unit> {
+  const { data, error } = await supabase.from('units').insert({ unit_name, password }).select().single();
   if (error) throw error;
+  return data;
+}
+
+export async function updateUnit(id: string, updates: Partial<Unit>): Promise<Unit> {
+  const { data, error } = await supabase.from('units').update(updates).eq('id', id).select().single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteUnit(id: string): Promise<void> {
+  const { error } = await supabase.from('units').delete().eq('id', id);
+  if (error) throw error;
+}
+
+export async function addChild(child: Omit<Child, 'id' | 'created_at' | 'updated_at'>): Promise<Child> {
+  const { data, error } = await supabase.from('children').insert(child).select().single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateChild(id: string, updates: Partial<Child>): Promise<Child> {
+  const { data, error } = await supabase.from('children').update(updates).eq('id', id).select().single();
+  if (error) throw error;
+  return data;
 }
 
 export async function deleteChild(id: string): Promise<void> {
-  const { error } = await supabase.from('delayed_children').delete().eq('id', id);
+  const { error } = await supabase.from('children').delete().eq('id', id);
   if (error) throw error;
 }
 
-export interface BulkDeleteFilters { unitId?: string; status?: string; dose?: string; }
-
-export async function deleteChildrenByFilters(filters: BulkDeleteFilters): Promise<number> {
-  let query = supabase.from('delayed_children').delete();
-  if (filters.unitId) query = query.eq('unit_id', filters.unitId);
+export async function deleteChildrenByFilters(filters: {
+  unit_id?: string;
+  status?: ChildStatus;
+  dose_number?: number;
+}): Promise<number> {
+  let query = supabase.from('children').delete();
+  if (filters.unit_id) query = query.eq('unit_id', filters.unit_id);
   if (filters.status) query = query.eq('status', filters.status);
-  if (filters.dose) query = query.eq('dose', filters.dose);
-  const { data, error } = await query.select('id');
+  if (filters.dose_number) query = query.eq('dose_number', filters.dose_number);
+  const { data, error } = await query.select();
   if (error) throw error;
   return data?.length || 0;
 }
 
-export function calculateKPIs(children: DelayedChild[]): KPIs {
+export async function calculateKPIs(children: Child[]): Promise<KPIs> {
   const total = children.length;
   const vaccinated = children.filter(c => c.status === 'تم التطعيم فى وحدة بتاريخ').length;
   const notVaccinated = children.filter(c => c.status === 'لم يتم التطعيم').length;
-  const refused = children.filter(c => c.status === 'رفض').length;
-  const traveling = children.filter(c => c.status === 'مسافر').length;
-  const documentedTravel = children.filter(c => c.status === 'مسافر موثق').length;
-  const sick = children.filter(c => c.status === 'مريض').length;
-  const transferred = children.filter(c => c.status === 'تم التحويل الى اقرب وحدة').length;
-  const deceased = children.filter(c => c.status === 'متوفى').length;
-  const phoneUnavailable = children.filter(c => c.status === 'الهاتف غير متاح').length;
-  const phoneWrong = children.filter(c => c.status === 'الهاتف خطأ').length;
-  const completion = total > 0 ? Math.round((vaccinated / total) * 100) : 0;
-  return { total, vaccinated, notVaccinated, refused, traveling, documentedTravel, sick, transferred, deceased, phoneUnavailable, phoneWrong, completion };
+  const delayed = children.filter(c =>
+    c.status !== 'تم التطعيم فى وحدة بتاريخ' && c.status !== 'متوفى'
+  ).length;
+  const rate = total > 0 ? Math.round((vaccinated / total) * 100) : 0;
+  return { total_children: total, vaccinated, not_vaccinated: notVaccinated, delayed, vaccination_rate: rate };
 }
 
-export function calculateUnitStats(children: DelayedChild[], units: Unit[]): UnitStats[] {
+export async function calculateUnitStats(children: Child[], units: Unit[]): Promise<UnitStats[]> {
   return units.map(unit => {
     const unitChildren = children.filter(c => c.unit_id === unit.id);
     const total = unitChildren.length;
     const vaccinated = unitChildren.filter(c => c.status === 'تم التطعيم فى وحدة بتاريخ').length;
-    const remaining = total - vaccinated;
-    const completion = total > 0 ? Math.round((vaccinated / total) * 100) : 0;
-    return { unit_id: unit.id, unit_name: unit.unit_name, total, vaccinated, remaining, completion };
+    const notVaccinated = unitChildren.filter(c => c.status === 'لم يتم التطعيم').length;
+    const delayed = unitChildren.filter(c =>
+      c.status !== 'تم التطعيم فى وحدة بتاريخ' && c.status !== 'متوفى'
+    ).length;
+    const rate = total > 0 ? Math.round((vaccinated / total) * 100) : 0;
+    return { unit_name: unit.unit_name, total, vaccinated, not_vaccinated: notVaccinated, delayed, vaccination_rate: rate };
   });
 }
 
-export async function fetchNotifications(unitId?: string): Promise<Notification[]> {
-  let query = supabase.from('notifications').select('*, child:delayed_children(*), unit:units(*)').order('created_at', { ascending: false });
-  if (unitId) query = query.eq('unit_id', unitId);
-  const { data, error } = await query;
+export async function fetchDelayedChildren(): Promise<DelayedChild[]> {
+  const { data, error } = await supabase.from('children').select('*').neq('status', 'تم التطعيم فى وحدة بتاريخ').neq('status', 'متوفى').order('created_at', { ascending: false });
+  if (error) throw error;
+  const now = new Date();
+  return (data || []).map(child => {
+    const created = new Date(child.created_at || now.toISOString());
+    const diffMs = now.getTime() - created.getTime();
+    const delayDays = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+    return { ...child, delay_days: delayDays } as DelayedChild;
+  });
+}
+
+export async function fetchNotifications(): Promise<Notification[]> {
+  const { data, error } = await supabase.from('notifications').select('*').order('created_at', { ascending: false });
   if (error) throw error;
   return data || [];
 }
@@ -79,7 +115,7 @@ export async function markNotificationRead(id: string): Promise<void> {
   if (error) throw error;
 }
 
-export async function addFollowUpHistory(childId: string, status: string, notes: string, changedBy: string) {
-  const { error } = await supabase.from('follow_up_history').insert([{ child_id: childId, status, notes, changed_by: changedBy }]);
+export async function addFollowUpHistory(childId: string, note: string): Promise<void> {
+  const { error } = await supabase.from('follow_up_history').insert({ child_id: childId, note, followed_at: new Date().toISOString() });
   if (error) throw error;
 }

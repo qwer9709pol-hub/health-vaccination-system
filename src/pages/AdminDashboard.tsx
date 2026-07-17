@@ -1,63 +1,261 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Users, CheckCircle, Clock, TrendingUp, Download, AlertTriangle, BarChart3, XCircle, Plane, Heart, Trash2 } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import KPICard from '../components/KPICard';
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '../auth/AuthContext';
+import { fetchChildren, fetchUnits, updateChild, deleteChild, deleteChildrenByFilters, calculateKPIs, calculateUnitStats, addUnit, updateUnit, deleteUnit } from '../api/data';
+import type { Child, Unit, KPIs, UnitStats, ChildStatus } from '../types';
+import { STATUS_CONFIG } from '../types';
 import ChildrenTable from '../components/ChildrenTable';
-import SearchFilter from '../components/SearchFilter';
 import EditChildModal from '../components/EditChildModal';
-import ChildProfileModal from '../components/ChildProfileModal';
 import BulkDeleteModal from '../components/BulkDeleteModal';
-import { DelayedChild, UnitStats, KPIs, Unit } from '../types';
-import { fetchChildren, fetchUnits, updateChild, deleteChild, calculateKPIs, calculateUnitStats } from '../api/data';
+import UnitsManagementPage from './UnitsManagementPage';
+import { LogOut, Users, Syringe, AlertCircle, BarChart3, Trash2, Building2, Download, Upload, Plus } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
-function formatDate(d: string | null | undefined): string { if (!d) return ''; const date = new Date(d); return isNaN(date.getTime()) ? (d || '') : `${String(date.getDate()).padStart(2,'0')}/${String(date.getMonth()+1).padStart(2,'0')}/${date.getFullYear()}`; }
-function getStatusDetails(c: DelayedChild): string { switch (c.status) { case 'تم التطعيم فى وحدة بتاريخ': return `${c.vaccination_place||''} ${formatDate(c.vaccination_date)}`.trim(); case 'مسافر': case 'مسافر موثق': return `${c.travel_country||''} ${formatDate(c.travel_date)}`.trim(); case 'مريض': return c.disease_name||''; case 'رفض': return c.refusal_reason||''; case 'تم التحويل الى اقرب وحدة': return c.transfer_destination||''; case 'متوفى': return formatDate(c.death_date); default: return ''; } }
+type Tab = 'overview' | 'children' | 'units' | 'analytics';
 
 export default function AdminDashboard() {
-  const [children, setChildren] = useState<DelayedChild[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [unitFilter, setUnitFilter] = useState('');
-  const [doseFilter, setDoseFilter] = useState('');
-  const [editingChild, setEditingChild] = useState<DelayedChild | null>(null);
-  const [selectedChild, setSelectedChild] = useState<DelayedChild | null>(null);
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
-  const [kpis, setKPIs] = useState<KPIs>({ total:0, vaccinated:0, notVaccinated:0, refused:0, traveling:0, documentedTravel:0, sick:0, transferred:0, deceased:0, phoneUnavailable:0, phoneWrong:0, completion:0 });
+  const { user, logout } = useAuth();
+  const [tab, setTab] = useState<Tab>('overview');
+  const [children, setChildren] = useState<Child[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
+  const [kpis, setKpis] = useState<KPIs | null>(null);
   const [unitStats, setUnitStats] = useState<UnitStats[]>([]);
+  const [editChild, setEditChild] = useState<Child | null>(null);
+  const [showBulkDelete, setShowBulkDelete] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => { loadData(); }, []);
-  const loadData = async () => { try { setLoading(true); const [c, u] = await Promise.all([fetchChildren(), fetchUnits()]); setChildren(c); setUnits(u); setKPIs(calculateKPIs(c)); setUnitStats(calculateUnitStats(c, u)); } catch (e) { console.error(e); } finally { setLoading(false); } };
-  const handleSaveChild = async (id: string, updates: Partial<DelayedChild>) => { await updateChild(id, updates); await loadData(); };
-  const handleDeleteChild = async (child: DelayedChild) => { if (!confirm(`حذف الطفل "${child.child_name}"؟`)) return; try { await deleteChild(child.id); await loadData(); } catch { alert('حدث خطأ أثناء الحذف'); } };
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [c, u] = await Promise.all([fetchChildren(), fetchUnits()]);
+      setChildren(c);
+      setUnits(u);
+      const k = await calculateKPIs(c);
+      setKpis(k);
+      const us = await calculateUnitStats(c, u);
+      setUnitStats(us);
+    } catch (e) { console.error(e); }
+    setLoading(false);
+  }, []);
 
-  const filteredChildren = useMemo(() => children.filter((c) => { const ms = !statusFilter || c.status === statusFilter; const mu = !unitFilter || c.unit?.unit_name === unitFilter; const md = !doseFilter || c.dose === doseFilter; const q = searchQuery.trim().toLowerCase(); const mq = !q || c.child_name?.toLowerCase().includes(q) || c.mother_name?.toLowerCase().includes(q) || c.phone_number?.includes(q) || c.reporter_phone?.includes(q) || c.registration_number?.toString().includes(q) || c.address?.toLowerCase().includes(q) || c.dose?.toLowerCase().includes(q) || c.unit?.unit_name?.toLowerCase().includes(q); return ms && mu && md && mq; }), [children, searchQuery, statusFilter, unitFilter, doseFilter]);
-  const availableDoses = useMemo(() => { const d = new Set<string>(); children.forEach((c) => { if (c.dose) d.add(c.dose); }); return Array.from(d).sort(); }, [children]);
+  useEffect(() => { loadData(); }, [loadData]);
 
-  const handleExport = () => { const data = filteredChildren.map((c) => ({ 'الوحدة': c.unit?.unit_name||'', 'اسم الطفل': c.child_name, 'اسم الأم': c.mother_name||'', 'رقم القيد': c.registration_number||'', 'تاريخ الميلاد': formatDate(c.birth_date), 'العمر': c.age?`${c.age} سنة`:'', 'العنوان': c.address||'', 'رقم هاتف الطفل': c.phone_number||'', 'رقم هاتف المُبلغ': c.reporter_phone||'', 'التطعيم المتخلف': c.dose||'', 'آخر تطعيم': c.last_vaccine||'', 'الحالة': c.status, 'تفاصيل الحالة': getStatusDetails(c), 'تاريخ التطعيم': formatDate(c.vaccination_date), 'مكان التطعيم': c.vaccination_place||'', 'الدولة (للمسافر)': c.travel_country||'', 'تاريخ السفر': formatDate(c.travel_date), 'اسم المرض': c.disease_name||'', 'سبب الرفض': c.refusal_reason||'', 'جهة التحويل': c.transfer_destination||'', 'تاريخ الوفاة': formatDate(c.death_date), 'آخر متابعة': formatDate(c.last_follow_up), 'ملاحظات المتابعة': c.follow_up_notes||'', 'تاريخ آخر تعديل': formatDate(c.updated_at) })); const ws = XLSX.utils.json_to_sheet(data); ws['!cols'] = Array.from({length:24}, () => ({ wch:20 })); ws['!autofilter'] = { ref: ws['!ref']||'A1' }; const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'الأطفال المتخلفين'); XLSX.writeFile(wb, `تقرير_${new Date().toISOString().split('T')[0]}.xlsx`); };
+  const handleEditSave = async (id: string, updates: Partial<Child>) => {
+    await updateChild(id, updates);
+    setEditChild(null);
+    loadData();
+  };
 
-  const chartData = unitStats.slice(0,10).map((s) => ({ name: s.unit_name.length>10?s.unit_name.substring(0,10)+'...':s.unit_name, total:s.total, vaccinated:s.vaccinated, remaining:s.remaining }));
-  const statusPieData = [{name:'تم التطعيم',value:kpis.vaccinated,color:'#059669'},{name:'لم يتم',value:kpis.notVaccinated,color:'#f59e0b'},{name:'رفض',value:kpis.refused,color:'#ef4444'},{name:'مسافر',value:kpis.traveling,color:'#3b82f6'},{name:'مريض',value:kpis.sick,color:'#eab308'}].filter(d=>d.value>0);
-  const lowUnits = unitStats.filter(u => u.completion<50 && u.total>0);
+  const handleDelete = async (id: string) => {
+    if (!confirm('هل أنت متأكد من حذف هذا السجل؟')) return;
+    await deleteChild(id);
+    loadData();
+  };
+
+  const handleBulkDelete = async (filters: { unit_id?: string; status?: ChildStatus; dose_number?: number }) => {
+    const count = await deleteChildrenByFilters(filters);
+    loadData();
+    return count;
+  };
+
+  const handleExport = () => {
+    const data = children.map(c => ({
+      'الاسم': c.name,
+      'الرقم القومي': c.national_id,
+      'تاريخ الميلاد': c.birth_date,
+      'الهاتف': c.phone,
+      'الوحدة': c.unit_name || units.find(u => u.id === c.unit_id)?.unit_name || '',
+      'الحالة': c.status,
+      'الجرعة': c.dose_number,
+      'تاريخ التطعيم': c.vaccination_date || '',
+      'ملاحظات': c.notes || '',
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    ws['!autofilter'] = { ref: ws['!ref'] || 'A1' };
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'البيانات');
+    XLSX.writeFile(wb, 'بيانات_التطعيمات.xlsx');
+  };
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const wb = XLSX.read(evt.target?.result, { type: 'array' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json<Record<string, any>>(ws);
+        // For now just show count - actual import would need addChild calls
+        alert(`تم قراءة ${rows.length} سجل من الملف. استيراد البيانات يتطلب ربط مع الوحدات.`);
+      } catch { alert('خطأ في قراءة الملف'); }
+    };
+    reader.readAsArrayBuffer(file);
+    e.target.value = '';
+  };
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="text-slate-400">جاري التحميل...</div></div>;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between"><h1 className="text-2xl font-bold text-gray-900 dark:text-white">لوحة تحكم المدير</h1><div className="flex gap-2"><button onClick={()=>setBulkDeleteOpen(true)} className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors shadow-sm"><Trash2 className="w-5 h-5" />حذف جماعي</button><button onClick={handleExport} className="flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors shadow-sm"><Download className="w-5 h-5" />تصدير التقرير</button></div></div>
-      <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-4"><KPICard title="إجمالي الأطفال" value={kpis.total} color="blue" icon={<Users className="w-5 h-5" />} /><KPICard title="تم التطعيم" value={kpis.vaccinated} color="emerald" icon={<CheckCircle className="w-5 h-5" />} /><KPICard title="لم يتم التطعيم" value={kpis.notVaccinated} color="orange" icon={<Clock className="w-5 h-5" />} /><KPICard title="رفض" value={kpis.refused} color="red" icon={<XCircle className="w-5 h-5" />} /><KPICard title="مسافر" value={kpis.traveling} color="blue" icon={<Plane className="w-5 h-5" />} /><KPICard title="مريض" value={kpis.sick} color="yellow" icon={<Heart className="w-5 h-5" />} /><KPICard title="نسبة الإنجاز" value={kpis.completion} suffix="%" color="emerald" icon={<TrendingUp className="w-5 h-5" />} /></div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4"><KPICard title="مسافر موثق" value={kpis.documentedTravel} color="purple" icon={<Plane className="w-5 h-5" />} /><KPICard title="محول" value={kpis.transferred} color="teal" icon={<TrendingUp className="w-5 h-5" />} /><KPICard title="متوفى" value={kpis.deceased} color="gray" icon={<XCircle className="w-5 h-5" />} /><KPICard title="الهاتف غير متاح" value={kpis.phoneUnavailable} color="gray" icon={<Clock className="w-5 h-5" />} /></div>
-      {lowUnits.length>0 && <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-start gap-3"><AlertTriangle className="w-6 h-6 text-red-600 flex-shrink-0" /><div><h3 className="font-semibold text-red-800 dark:text-red-300">وحدات تحتاج متابعة عاجلة</h3><p className="text-sm text-red-700 dark:text-red-400 mt-1">{lowUnits.map(u=>u.unit_name).join('، ')} - نسبة إنجاز أقل من 50%</p></div></div>}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6"><h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2"><BarChart3 className="w-5 h-5 text-emerald-600" />إحصائيات الوحدات (أعلى 10)</h3><div className="h-64"><ResponsiveContainer width="100%" height="100%"><BarChart data={chartData} layout="vertical"><CartesianGrid strokeDasharray="3 3" stroke="#374151" /><XAxis type="number" stroke="#9ca3af" /><YAxis type="category" dataKey="name" width={80} tick={{fontSize:11,fill:'#9ca3af'}} /><Tooltip contentStyle={{backgroundColor:'#1f2937',border:'none',borderRadius:'8px'}} /><Bar dataKey="vaccinated" stackId="a" fill="#059669" name="تم التطعيم" /><Bar dataKey="remaining" stackId="a" fill="#f59e0b" name="المتبقي" /></BarChart></ResponsiveContainer></div></div>
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 p-6"><h3 className="font-semibold text-gray-900 dark:text-white mb-4">توزيع الحالات</h3><div className="h-64 flex items-center justify-center"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={statusPieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} dataKey="value" label={({name,percent})=>`${name} (${((percent||0)*100).toFixed(0)}%)`}>{statusPieData.map((e,i)=><Cell key={i} fill={e.color} />)}</Pie><Tooltip contentStyle={{backgroundColor:'#1f2937',border:'none',borderRadius:'8px'}} /></PieChart></ResponsiveContainer></div></div>
-      </div>
-      {unitStats.length>0 && <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border dark:border-gray-700 overflow-hidden"><div className="px-6 py-4 border-b dark:border-gray-700"><h3 className="font-semibold text-gray-900 dark:text-white">إحصائيات جميع الوحدات</h3></div><div className="overflow-x-auto"><table className="w-full"><thead><tr className="bg-gray-50 dark:bg-gray-700"><th className="px-4 py-3 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">الوحدة</th><th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 dark:text-gray-300">إجمالي</th><th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 dark:text-gray-300">تم التطعيم</th><th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 dark:text-gray-300">المتبقي</th><th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 dark:text-gray-300">نسبة الإنجاز</th></tr></thead><tbody className="divide-y dark:divide-gray-700">{unitStats.map(s => <tr key={s.unit_id} className="hover:bg-gray-50 dark:hover:bg-gray-700"><td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{s.unit_name}</td><td className="px-4 py-3 text-center text-gray-600 dark:text-gray-400">{s.total}</td><td className="px-4 py-3 text-center"><span className="text-emerald-600 font-medium">{s.vaccinated}</span></td><td className="px-4 py-3 text-center"><span className="text-orange-600 font-medium">{s.remaining}</span></td><td className="px-4 py-3 text-center"><div className="flex items-center justify-center gap-2"><div className="w-20 h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden"><div className={`h-full rounded-full ${s.completion>=70?'bg-emerald-500':s.completion>=40?'bg-orange-500':'bg-red-500'}`} style={{width:`${s.completion}%`}} /></div><span className="text-sm font-medium text-gray-700 dark:text-gray-300">{s.completion}%</span></div></td></tr>)}</tbody></table></div></div>}
-      <div className="space-y-4"><h2 className="text-xl font-bold text-gray-900 dark:text-white">قائمة الأطفال المتخلفين</h2><SearchFilter searchQuery={searchQuery} onSearchChange={setSearchQuery} statusFilter={statusFilter} onStatusChange={setStatusFilter} unitFilter={unitFilter} onUnitChange={setUnitFilter} units={units.map(u=>u.unit_name)} doseFilter={doseFilter} onDoseChange={setDoseFilter} doses={availableDoses} /><ChildrenTable children={filteredChildren} loading={loading} showUnit onEdit={setEditingChild} onView={(c)=>{setSelectedChild(c);setProfileOpen(true);}} onDelete={handleDeleteChild} /></div>
-      <EditChildModal child={editingChild} isOpen={!!editingChild} onClose={()=>setEditingChild(null)} onSave={handleSaveChild} />
-      <ChildProfileModal child={selectedChild} isOpen={profileOpen} onClose={()=>setProfileOpen(false)} />
-      <BulkDeleteModal isOpen={bulkDeleteOpen} onClose={()=>setBulkDeleteOpen(false)} onDeleted={loadData} units={units} doses={availableDoses} />
+    <div className="min-h-screen bg-slate-50">
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-teal-600 rounded-lg flex items-center justify-center">
+                <Syringe className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-slate-800">لوحة تحكم الأدمن</h1>
+                <p className="text-xs text-slate-500">{user?.username || 'admin'}</p>
+              </div>
+            </div>
+            <button onClick={logout} className="flex items-center gap-2 text-slate-600 hover:text-red-600 transition-colors px-3 py-2 rounded-lg hover:bg-slate-100">
+              <LogOut className="w-5 h-5" />
+              خروج
+            </button>
+          </div>
+          <div className="flex gap-1 pb-2 overflow-x-auto">
+            {([
+              { id: 'overview', label: 'نظرة عامة', icon: BarChart3 },
+              { id: 'children', label: 'بيانات الأطفال', icon: Users },
+              { id: 'units', label: 'الوحدات', icon: Building2 },
+              { id: 'analytics', label: 'التحليلات', icon: BarChart3 },
+            ] as { id: Tab; label: string; icon: any }[]).map(t => (
+              <button key={t.id} onClick={() => setTab(t.id)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                  tab === t.id ? 'bg-teal-600 text-white' : 'text-slate-600 hover:bg-slate-100'
+                }`}>
+                <t.icon className="w-4 h-4" />
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {tab === 'overview' && kpis && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="card">
+                <div className="flex items-center justify-between">
+                  <div><p className="text-sm text-slate-500">إجمالي الأطفال</p><p className="text-2xl font-bold text-slate-800 mt-1">{kpis.total_children}</p></div>
+                  <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center"><Users className="w-6 h-6 text-blue-600" /></div>
+                </div>
+              </div>
+              <div className="card">
+                <div className="flex items-center justify-between">
+                  <div><p className="text-sm text-slate-500">تم التطعيم</p><p className="text-2xl font-bold text-green-600 mt-1">{kpis.vaccinated}</p></div>
+                  <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center"><Syringe className="w-6 h-6 text-green-600" /></div>
+                </div>
+              </div>
+              <div className="card">
+                <div className="flex items-center justify-between">
+                  <div><p className="text-sm text-slate-500">لم يتم التطعيم</p><p className="text-2xl font-bold text-red-600 mt-1">{kpis.not_vaccinated}</p></div>
+                  <div className="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center"><AlertCircle className="w-6 h-6 text-red-600" /></div>
+                </div>
+              </div>
+              <div className="card">
+                <div className="flex items-center justify-between">
+                  <div><p className="text-sm text-slate-500">نسبة التطعيم</p><p className="text-2xl font-bold text-teal-600 mt-1">{kpis.vaccination_rate}%</p></div>
+                  <div className="w-12 h-12 bg-teal-50 rounded-xl flex items-center justify-center"><BarChart3 className="w-6 h-6 text-teal-600" /></div>
+                </div>
+              </div>
+            </div>
+
+            <div className="card">
+              <h3 className="text-lg font-bold text-slate-800 mb-4">إحصائيات الوحدات</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-50 text-slate-600">
+                    <tr>
+                      <th className="px-4 py-3 text-right font-medium">الوحدة</th>
+                      <th className="px-4 py-3 text-right font-medium">الإجمالي</th>
+                      <th className="px-4 py-3 text-right font-medium">تم التطعيم</th>
+                      <th className="px-4 py-3 text-right font-medium">لم يتم</th>
+                      <th className="px-4 py-3 text-right font-medium">متأخر</th>
+                      <th className="px-4 py-3 text-right font-medium">النسبة</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {unitStats.map(us => (
+                      <tr key={us.unit_name} className="hover:bg-slate-50">
+                        <td className="px-4 py-3 font-medium text-slate-800">{us.unit_name}</td>
+                        <td className="px-4 py-3 text-slate-600">{us.total}</td>
+                        <td className="px-4 py-3 text-green-600">{us.vaccinated}</td>
+                        <td className="px-4 py-3 text-red-600">{us.not_vaccinated}</td>
+                        <td className="px-4 py-3 text-amber-600">{us.delayed}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-20 h-2 bg-slate-100 rounded-full overflow-hidden">
+                              <div className="h-full bg-teal-500 rounded-full" style={{ width: `${us.vaccination_rate}%` }} />
+                            </div>
+                            <span className="text-slate-600 text-xs">{us.vaccination_rate}%</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {tab === 'children' && (
+          <div className="space-y-4">
+            <div className="flex flex-wrap gap-2 items-center justify-between">
+              <h2 className="text-xl font-bold text-slate-800">بيانات الأطفال</h2>
+              <div className="flex gap-2">
+                <label className="btn-secondary flex items-center gap-2 cursor-pointer">
+                  <Upload className="w-4 h-4" />
+                  استيراد
+                  <input type="file" accept=".xlsx,.xls" onChange={handleImport} className="hidden" />
+                </label>
+                <button onClick={handleExport} className="btn-secondary flex items-center gap-2">
+                  <Download className="w-4 h-4" />
+                  تصدير
+                </button>
+                <button onClick={() => setShowBulkDelete(true)} className="btn-danger flex items-center gap-2">
+                  <Trash2 className="w-4 h-4" />
+                  حذف جماعي
+                </button>
+              </div>
+            </div>
+            <ChildrenTable children={children} onEdit={setEditChild} onDelete={handleDelete} showUnit />
+          </div>
+        )}
+
+        {tab === 'units' && (
+          <UnitsManagementPage units={units} onRefresh={loadData} onAddUnit={addUnit} onUpdateUnit={updateUnit} onDeleteUnit={deleteUnit} />
+        )}
+
+        {tab === 'analytics' && (
+          <div className="space-y-6">
+            <div className="card">
+              <h3 className="text-lg font-bold text-slate-800 mb-4">توزيع الحالات</h3>
+              <div className="space-y-2">
+                {Object.entries(STATUS_CONFIG).map(([status, cfg]) => {
+                  const count = children.filter(c => c.status === status).length;
+                  const pct = children.length > 0 ? Math.round((count / children.length) * 100) : 0;
+                  return (
+                    <div key={status} className="flex items-center gap-3">
+                      <span className="text-sm text-slate-600 w-48">{status}</span>
+                      <div className="flex-1 h-6 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: cfg.color }} />
+                      </div>
+                      <span className="text-sm text-slate-600 w-16 text-left">{count} ({pct}%)</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+
+      {editChild && <EditChildModal child={editChild} onClose={() => setEditChild(null)} onSave={handleEditSave} />}
+      {showBulkDelete && <BulkDeleteModal units={units} onClose={() => setShowBulkDelete(false)} onConfirm={handleBulkDelete} />}
     </div>
   );
 }

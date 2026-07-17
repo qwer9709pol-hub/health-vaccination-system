@@ -1,73 +1,89 @@
-import React, { useState, useEffect } from 'react';
-import { X, Save, AlertCircle, Calendar } from 'lucide-react';
-import { DelayedChild, STATUS_OPTIONS, STATUS_CONFIG, ChildStatus } from '../types';
+import { useState, useEffect } from 'react';
+import type { Child, ChildStatus } from '../types';
+import { STATUS_OPTIONS } from '../types';
+import { X, Save } from 'lucide-react';
 
-interface EditChildModalProps { child: DelayedChild | null; isOpen: boolean; onClose: () => void; onSave: (id: string, updates: Partial<DelayedChild>) => Promise<void>; }
+interface Props {
+  child: Child | null;
+  onClose: () => void;
+  onSave: (id: string, updates: Partial<Child>) => void;
+}
 
-export default function EditChildModal({ child, isOpen, onClose, onSave }: EditChildModalProps) {
-  const [status, setStatus] = useState<ChildStatus>('لم يتم التطعيم');
-  const [notes, setNotes] = useState('');
-  const [vaccinationDate, setVaccinationDate] = useState('');
-  const [vaccinationPlace, setVaccinationPlace] = useState('');
-  const [travelCountry, setTravelCountry] = useState('');
-  const [travelDate, setTravelDate] = useState('');
-  const [diseaseName, setDiseaseName] = useState('');
-  const [transferDestination, setTransferDestination] = useState('');
-  const [refusalReason, setRefusalReason] = useState('');
-  const [deathDate, setDeathDate] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+export default function EditChildModal({ child, onClose, onSave }: Props) {
+  const [form, setForm] = useState<Partial<Child>>({});
 
   useEffect(() => {
-    if (child) {
-      setStatus((child.status as ChildStatus) || 'لم يتم التطعيم'); setNotes(child.follow_up_notes || ''); setTransferDestination(child.transfer_destination || ''); setDiseaseName(child.disease_name || ''); setRefusalReason(child.refusal_reason || ''); setDeathDate(child.death_date || ''); setVaccinationDate(child.vaccination_date || new Date().toISOString().split('T')[0]); setVaccinationPlace(child.vaccination_place || ''); setTravelCountry(child.travel_country || ''); setTravelDate(child.travel_date || '');
-    }
+    if (child) setForm({ ...child });
   }, [child]);
 
-  const handleStatusChange = (newStatus: ChildStatus) => { setStatus(newStatus); if (newStatus === 'تم التطعيم فى وحدة بتاريخ' && !vaccinationDate) setVaccinationDate(new Date().toISOString().split('T')[0]); };
+  if (!child) return null;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); if (!child) return; setLoading(true); setError('');
-    if (status === 'تم التطعيم فى وحدة بتاريخ') { if (!vaccinationPlace.trim()) { setError('من فضلك أدخل مكان التطعيم'); setLoading(false); return; } if (!vaccinationDate) { setError('من فضلك أدخل تاريخ التطعيم'); setLoading(false); return; } }
-    if ((status === 'مسافر' || status === 'مسافر موثق') && !travelCountry.trim()) { setError('من فضلك أدخل دولة السفر'); setLoading(false); return; }
-    if (status === 'مريض' && !diseaseName.trim()) { setError('من فضلك أدخل اسم المرض'); setLoading(false); return; }
-    try {
-      const updates: Partial<DelayedChild> = { status, follow_up_notes: notes };
-      if (status === 'تم التطعيم فى وحدة بتاريخ') { (updates as any).vaccination_place = vaccinationPlace; updates.vaccination_date = vaccinationDate; }
-      if (status === 'مسافر' || status === 'مسافر موثق') { (updates as any).travel_country = travelCountry; (updates as any).travel_date = travelDate; }
-      if (status === 'مريض') (updates as any).disease_name = diseaseName;
-      if (status === 'تم التحويل الى اقرب وحدة') (updates as any).transfer_destination = transferDestination;
-      if (status === 'رفض') (updates as any).refusal_reason = refusalReason;
-      if (status === 'متوفى') (updates as any).death_date = deathDate;
-      await onSave(child.id, updates); onClose();
-    } catch { setError('حدث خطأ أثناء الحفظ'); } finally { setLoading(false); }
+  const handleSave = () => {
+    const updates: Partial<Child> = { ...form };
+    if (form.status !== 'تم التطعيم فى وحدة بتاريخ') {
+      updates.vaccination_date = null;
+    }
+    onSave(child.id, updates);
   };
 
-  if (!isOpen || !child) return null;
-  const statusConfig = STATUS_CONFIG[status];
-
   return (
-    <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto transition-colors duration-300" dir="rtl">
-        <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4 flex items-center justify-between sticky top-0 z-10"><h2 className="text-xl font-bold text-white">تعديل بيانات المتابعة</h2><button onClick={onClose} className="p-1 hover:bg-white/20 rounded-lg transition-colors"><X className="w-6 h-6 text-white" /></button></div>
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {error && <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-lg"><AlertCircle className="w-5 h-5" /><span>{error}</span></div>}
-          <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 space-y-2">
-            <p className="text-sm text-gray-600 dark:text-gray-300"><span className="font-medium text-gray-700 dark:text-gray-200">اسم الطفل:</span> {child.child_name}</p>
-            <p className="text-sm text-gray-600 dark:text-gray-300"><span className="font-medium text-gray-700 dark:text-gray-200">رقم القيد:</span> {child.registration_number || '-'}</p>
-            <p className="text-sm text-gray-600 dark:text-gray-300"><span className="font-medium text-gray-700 dark:text-gray-200">رقم الهاتف:</span> {child.phone_number || '-'}</p>
-            <p className="text-sm text-gray-600 dark:text-gray-300"><span className="font-medium text-gray-700 dark:text-gray-200">التطعيم المتخلف:</span> {child.dose || 'غير محدد'}</p>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between p-6 border-b border-slate-200 flex-shrink-0">
+          <h2 className="text-xl font-bold text-slate-800">تعديل بيانات الطفل</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="p-6 overflow-y-auto flex-1 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">الاسم</label>
+            <input type="text" value={form.name || ''} onChange={e => setForm({ ...form, name: e.target.value })} className="input-field" />
           </div>
-          <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">الحالة</label><select value={status} onChange={(e) => handleStatusChange(e.target.value as ChildStatus)} className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none appearance-none cursor-pointer ${statusConfig.bgColor} ${statusConfig.color} border-transparent font-medium`}>{STATUS_OPTIONS.map((s) => <option key={s} value={s} className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">{STATUS_CONFIG[s].label}</option>)}</select></div>
-          {status === 'تم التطعيم فى وحدة بتاريخ' && <div className="bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 rounded-lg p-4 space-y-3"><div><label className="flex items-center gap-2 text-sm font-medium text-emerald-800 dark:text-emerald-300 mb-2"><Calendar className="w-4 h-4" />تاريخ التطعيم</label><input type="date" value={vaccinationDate} onChange={(e) => setVaccinationDate(e.target.value)} className="w-full px-4 py-3 border border-emerald-300 dark:border-emerald-700 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none bg-white dark:bg-gray-700 dark:text-white" /></div><div><label className="block text-sm font-medium text-emerald-800 dark:text-emerald-300 mb-2">مكان التطعيم</label><input type="text" value={vaccinationPlace} onChange={(e) => setVaccinationPlace(e.target.value)} className="w-full px-4 py-3 border border-emerald-300 dark:border-emerald-700 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none bg-white dark:bg-gray-700 dark:text-white" placeholder="اسم الوحدة" /></div></div>}
-          {(status === 'مسافر' || status === 'مسافر موثق') && <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 space-y-3"><div><label className="block text-sm font-medium text-amber-800 dark:text-amber-300 mb-2">دولة السفر</label><input type="text" value={travelCountry} onChange={(e) => setTravelCountry(e.target.value)} className="w-full px-4 py-3 border border-amber-300 dark:border-amber-700 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none bg-white dark:bg-gray-700 dark:text-white" /></div><div><label className="flex items-center gap-2 text-sm font-medium text-amber-800 dark:text-amber-300 mb-2"><Calendar className="w-4 h-4" />تاريخ السفر</label><input type="date" value={travelDate} onChange={(e) => setTravelDate(e.target.value)} className="w-full px-4 py-3 border border-amber-300 dark:border-amber-700 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none bg-white dark:bg-gray-700 dark:text-white" /></div></div>}
-          {status === 'مريض' && <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-4"><label className="block text-sm font-medium text-red-800 dark:text-red-300 mb-2">اسم المرض</label><input type="text" value={diseaseName} onChange={(e) => setDiseaseName(e.target.value)} className="w-full px-4 py-3 border border-red-300 dark:border-red-700 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none bg-white dark:bg-gray-700 dark:text-white" placeholder="اكتب اسم المرض" /></div>}
-          {status === 'تم التحويل الى اقرب وحدة' && <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-4"><label className="block text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">اسم الوحدة المحول إليها</label><input type="text" value={transferDestination} onChange={(e) => setTransferDestination(e.target.value)} className="w-full px-4 py-3 border border-blue-300 dark:border-blue-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none bg-white dark:bg-gray-700 dark:text-white" placeholder="اسم الوحدة" /></div>}
-          {status === 'رفض' && <div className="bg-orange-50 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-800 rounded-lg p-4"><label className="block text-sm font-medium text-orange-800 dark:text-orange-300 mb-2">سبب الرفض</label><textarea value={refusalReason} onChange={(e) => setRefusalReason(e.target.value)} rows={3} className="w-full px-4 py-3 border border-orange-300 dark:border-orange-700 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none bg-white dark:bg-gray-700 dark:text-white" placeholder="اكتب سبب الرفض..." /></div>}
-          {status === 'متوفى' && <div className="bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg p-4"><label className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-2">تاريخ الوفاة</label><input type="date" value={deathDate} onChange={(e) => setDeathDate(e.target.value)} className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent outline-none bg-white dark:bg-gray-700 dark:text-white" /></div>}
-          <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">ملاحظات المتابعة</label><textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={4} className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none resize-none bg-white dark:bg-gray-700 dark:text-white" placeholder="أضف ملاحظات المتابعة هنا..." /></div>
-          <div className="sticky bottom-0 bg-white dark:bg-gray-800 border-t dark:border-gray-700 pt-4 pb-2 flex gap-3"><button type="submit" disabled={loading} className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-3 rounded-lg font-medium hover:from-emerald-700 hover:to-teal-700 transition-all disabled:opacity-50 shadow-lg">{loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><Save className="w-5 h-5" /><span>حفظ التغييرات</span></>}</button><button type="button" onClick={onClose} className="px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">إلغاء</button></div>
-        </form>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">الرقم القومي</label>
+            <input type="text" value={form.national_id || ''} onChange={e => setForm({ ...form, national_id: e.target.value })} className="input-field" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">تاريخ الميلاد</label>
+            <input type="date" value={form.birth_date || ''} onChange={e => setForm({ ...form, birth_date: e.target.value })} className="input-field" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">الهاتف</label>
+            <input type="text" value={form.phone || ''} onChange={e => setForm({ ...form, phone: e.target.value })} className="input-field" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">الحالة</label>
+            <select value={form.status || ''} onChange={e => setForm({ ...form, status: e.target.value as ChildStatus })} className="input-field">
+              {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">رقم الجرعة</label>
+            <select value={form.dose_number || 1} onChange={e => setForm({ ...form, dose_number: Number(e.target.value) })} className="input-field">
+              <option value={1}>الجرعة الأولى</option>
+              <option value={2}>الجرعة الثانية</option>
+              <option value={3}>الجرعة الثالثة</option>
+            </select>
+          </div>
+          {form.status === 'تم التطعيم فى وحدة بتاريخ' && (
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">تاريخ التطعيم</label>
+              <input type="date" value={form.vaccination_date || ''} onChange={e => setForm({ ...form, vaccination_date: e.target.value })} className="input-field" />
+            </div>
+          )}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">ملاحظات</label>
+            <textarea value={form.notes || ''} onChange={e => setForm({ ...form, notes: e.target.value })} className="input-field" rows={3} />
+          </div>
+        </div>
+        <div className="flex gap-3 p-6 border-t border-slate-200 flex-shrink-0">
+          <button onClick={handleSave} className="btn-primary flex items-center gap-2">
+            <Save className="w-5 h-5" />
+            حفظ
+          </button>
+          <button onClick={onClose} className="btn-secondary">إلغاء</button>
+        </div>
       </div>
     </div>
   );
