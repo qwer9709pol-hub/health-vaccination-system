@@ -7,7 +7,7 @@ import ChildrenTable from '../components/ChildrenTable';
 import EditChildModal from '../components/EditChildModal';
 import BulkDeleteModal from '../components/BulkDeleteModal';
 import UnitsManagementPage from './UnitsManagementPage';
-import { LogOut, Users, Syringe, AlertCircle, BarChart3, Trash2, Building2, Download, Upload, Plus } from 'lucide-react';
+import { LogOut, Users, Syringe, AlertCircle, BarChart3, Trash2, Building2, Download, Upload } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 type Tab = 'overview' | 'children' | 'units' | 'analytics';
@@ -85,7 +85,6 @@ export default function AdminDashboard() {
         const wb = XLSX.read(evt.target?.result, { type: 'array' });
         const ws = wb.Sheets[wb.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json<Record<string, any>>(ws);
-        // For now just show count - actual import would need addChild calls
         alert(`تم قراءة ${rows.length} سجل من الملف. استيراد البيانات يتطلب ربط مع الوحدات.`);
       } catch { alert('خطأ في قراءة الملف'); }
     };

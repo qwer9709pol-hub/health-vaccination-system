@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import type { Child, ChildStatus } from '../types';
 import { STATUS_OPTIONS, STATUS_CONFIG } from '../types';
-import { Edit2, Trash2, Search, Filter, Phone, MessageCircle, X } from 'lucide-react';
+import { Edit2, Trash2, Search, X } from 'lucide-react';
 import { WhatsAppIcon } from './WhatsAppIcon';
 
 interface Props {

@@ -4,7 +4,7 @@ import { fetchChildrenByUnit, updateChild, deleteChild, calculateKPIs } from '..
 import type { Child, KPIs } from '../types';
 import ChildrenTable from '../components/ChildrenTable';
 import EditChildModal from '../components/EditChildModal';
-import { LogOut, Users, Syringe, AlertCircle, BarChart3, Plus, Download } from 'lucide-react';
+import { LogOut, Users, Syringe, AlertCircle, BarChart3, Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 export default function UnitDashboard() {

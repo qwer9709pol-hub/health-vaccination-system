@@ -72,7 +72,6 @@ export default function BulkDeleteModal({ units, onClose, onConfirm }: Props) {
             </>
           ) : (
             <div className="text-center py-8">
-              <div className="text-5xl mb-4">{result > 0 ? '✓' : '!'}</div>
               <p className="text-lg font-medium text-slate-800">
                 {result > 0 ? `تم حذف ${result} سجل` : 'لا توجد سجلات مطابقة'}
               </p>

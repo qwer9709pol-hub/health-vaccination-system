@@ -1,23 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
-import { fetchUnits } from '../api/data';
-import type { Unit } from '../types';
-import { Shield, Syringe, LogIn, UserCog } from 'lucide-react';
+import { Syringe, LogIn, UserCog } from 'lucide-react';
 
 export default function LoginPage() {
   const { login, adminLogin } = useAuth();
   const [mode, setMode] = useState<'unit' | 'admin'>('unit');
   const [unitName, setUnitName] = useState('');
-  const [units, setUnits] = useState<Unit[]>([]);
   const [password, setPassword] = useState('');
   const [adminUsername, setAdminUsername] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    fetchUnits().then(setUnits).catch(() => {});
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,17 +66,14 @@ export default function LoginPage() {
               <>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">اسم الوحدة</label>
-                  <select
+                  <input
+                    type="text"
                     value={unitName}
                     onChange={(e) => setUnitName(e.target.value)}
                     required
+                    placeholder="اسم الوحدة الصحية"
                     className="input-field"
-                  >
-                    <option value="">اختر الوحدة</option>
-                    {units.map((u) => (
-                      <option key={u.id} value={u.unit_name}>{u.unit_name}</option>
-                    ))}
-                  </select>
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">كلمة المرور</label>
