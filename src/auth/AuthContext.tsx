@@ -16,9 +16,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const stored = localStorage.getItem('vaccination_user');
-    if (stored) {
-      try { setUser(JSON.parse(stored)); } catch { localStorage.removeItem('vaccination_user'); }
-    }
+    if (stored) { try { setUser(JSON.parse(stored)); } catch { localStorage.removeItem('vaccination_user'); } }
   }, []);
 
   const login = async (unitName: string, password: string) => {

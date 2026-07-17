@@ -19,46 +19,19 @@ function DashboardContent({ onLogout }: { onLogout: () => void }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
-
   const unitId = user?.role === 'unit_user' ? user.unit_id : undefined;
 
   useEffect(() => { loadNotifications(); }, [user]);
+  const loadNotifications = async () => { if (!user) return; setNotificationsLoading(true); try { setNotifications(await fetchNotifications(unitId)); } catch (e) { console.error(e); } finally { setNotificationsLoading(false); } };
+  const handleMarkRead = async (id: string) => { await markNotificationRead(id); setNotifications(p => p.map(n => n.id === id ? { ...n, is_read: true } : n)); };
+  const unreadCount = notifications.filter(n => !n.is_read).length;
 
-  const loadNotifications = async () => {
-    if (!user) return;
-    setNotificationsLoading(true);
-    try {
-      const data = await fetchNotifications(unitId);
-      setNotifications(data);
-    } catch (error) { console.error('Error loading notifications:', error); }
-    finally { setNotificationsLoading(false); }
-  };
-
-  const handleMarkNotificationRead = async (id: string) => {
-    await markNotificationRead(id);
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
-  };
-
-  const unreadCount = notifications.filter((n) => !n.is_read).length;
-
-  const renderContent = () => {
-    if (user?.role === 'admin') {
-      switch (activeTab) {
-        case 'import': return <ExcelImportPage />;
-        case 'analytics': return <AnalyticsPage />;
-        case 'units': return <UnitsManagementPage />;
-        default: return <AdminDashboard />;
-      }
-    }
-    return <UnitDashboard />;
-  };
+  const renderContent = () => { if (user?.role === 'admin') { switch (activeTab) { case 'import': return <ExcelImportPage />; case 'analytics': return <AnalyticsPage />; case 'units': return <UnitsManagementPage />; default: return <AdminDashboard />; } } return <UnitDashboard />; };
 
   return (
-    <Layout activeTab={activeTab} onTabChange={setActiveTab} notificationCount={unreadCount}
-      onNotificationClick={() => setNotificationsOpen(true)} onLogout={handleLogout}>
+    <Layout activeTab={activeTab} onTabChange={setActiveTab} notificationCount={unreadCount} onNotificationClick={()=>setNotificationsOpen(true)} onLogout={handleLogout}>
       {renderContent()}
-      <NotificationPanel isOpen={notificationsOpen} onClose={() => setNotificationsOpen(false)}
-        notifications={notifications} loading={notificationsLoading} onMarkRead={handleMarkNotificationRead} />
+      <NotificationPanel isOpen={notificationsOpen} onClose={()=>setNotificationsOpen(false)} notifications={notifications} loading={notificationsLoading} onMarkRead={handleMarkRead} />
     </Layout>
   );
 }
@@ -66,12 +39,10 @@ function DashboardContent({ onLogout }: { onLogout: () => void }) {
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   useEffect(() => { if (localStorage.getItem('vaccination_user')) setIsAuthenticated(true); }, []);
-  const handleLogin = () => setIsAuthenticated(true);
-
   return (
     <ThemeProvider>
       <AuthProvider>
-        {isAuthenticated ? <DashboardContent onLogout={() => setIsAuthenticated(false)} /> : <LoginPage onLogin={handleLogin} />}
+        {isAuthenticated ? <DashboardContent onLogout={()=>setIsAuthenticated(false)} /> : <LoginPage onLogin={()=>setIsAuthenticated(true)} />}
       </AuthProvider>
     </ThemeProvider>
   );

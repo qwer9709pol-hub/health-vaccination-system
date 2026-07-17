@@ -17,9 +17,7 @@ export async function fetchUnits(): Promise<Unit[]> {
 
 export async function updateChild(id: string, updates: Partial<DelayedChild>, userId?: string): Promise<void> {
   const updateData: Record<string, unknown> = { ...updates, updated_at: new Date().toISOString(), last_follow_up: new Date().toISOString() };
-  if (updates.status === 'تم التطعيم فى وحدة بتاريخ' && !updates.vaccination_date) {
-    updateData.vaccination_date = new Date().toISOString().split('T')[0];
-  }
+  if (updates.status === 'تم التطعيم فى وحدة بتاريخ' && !updates.vaccination_date) updateData.vaccination_date = new Date().toISOString().split('T')[0];
   const { error } = await supabase.from('delayed_children').update(updateData).eq('id', id);
   if (error) throw error;
 }
@@ -29,11 +27,7 @@ export async function deleteChild(id: string): Promise<void> {
   if (error) throw error;
 }
 
-export interface BulkDeleteFilters {
-  unitId?: string;
-  status?: string;
-  dose?: string;
-}
+export interface BulkDeleteFilters { unitId?: string; status?: string; dose?: string; }
 
 export async function deleteChildrenByFilters(filters: BulkDeleteFilters): Promise<number> {
   let query = supabase.from('delayed_children').delete();

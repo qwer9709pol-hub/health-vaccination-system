@@ -13,18 +13,9 @@ export type ChildStatus =
   | 'متوفى';
 
 export const STATUS_OPTIONS: ChildStatus[] = [
-  'لم يتم التطعيم',
-  'تم التطعيم فى وحدة بتاريخ',
-  'مسافر',
-  'مسافر موثق',
-  'مريض',
-  'الهاتف خطأ',
-  'الهاتف غير متاح',
-  'الهاتف مغلق',
-  'رفض',
-  'منزل مغلق',
-  'تم التحويل الى اقرب وحدة',
-  'متوفى',
+  'لم يتم التطعيم', 'تم التطعيم فى وحدة بتاريخ', 'مسافر', 'مسافر موثق', 'مريض',
+  'الهاتف خطأ', 'الهاتف غير متاح', 'الهاتف مغلق', 'رفض', 'منزل مغلق',
+  'تم التحويل الى اقرب وحدة', 'متوفى',
 ];
 
 export const STATUS_CONFIG: Record<ChildStatus, { label: string; color: string; bgColor: string }> = {
@@ -42,86 +33,18 @@ export const STATUS_CONFIG: Record<ChildStatus, { label: string; color: string; 
   'تم التحويل الى اقرب وحدة': { label: 'تم التحويل الى اقرب وحدة', color: 'text-teal-700', bgColor: 'bg-teal-100' },
 };
 
-export interface Unit {
-  id: string;
-  unit_name: string;
-  unit_code?: number;
-  password?: string;
-  created_at?: string;
-}
-
+export interface Unit { id: string; unit_name: string; unit_code?: number; password?: string; created_at?: string; }
 export interface DelayedChild {
-  id: string;
-  unit_id: string;
-  child_name: string;
-  mother_name: string | null;
-  birth_date: string | null;
-  age: number | null;
-  phone_number: string | null;
-  reporter_phone?: string | null;
-  address?: string | null;
-  dose?: string | null;
-  delayed_vaccine: string | null;
-  last_vaccine: string | null;
-  status: ChildStatus;
-  vaccination_date: string | null;
-  vaccination_place?: string | null;
-  travel_country?: string | null;
-  travel_date?: string | null;
-  transfer_destination?: string | null;
-  disease_name?: string | null;
-  refusal_reason?: string | null;
-  death_date?: string | null;
-  follow_up_notes: string | null;
-  follow_up_date: string | null;
-  last_follow_up: string | null;
-  updated_by: string | null;
-  registration_number?: string | null;
-  unit_code?: number | null;
-  created_at?: string;
-  updated_at?: string;
-  unit?: Unit;
+  id: string; unit_id: string; child_name: string; mother_name: string | null; birth_date: string | null;
+  age: number | null; phone_number: string | null; reporter_phone?: string | null; address?: string | null;
+  dose?: string | null; delayed_vaccine: string | null; last_vaccine: string | null; status: ChildStatus;
+  vaccination_date: string | null; vaccination_place?: string | null; travel_country?: string | null;
+  travel_date?: string | null; transfer_destination?: string | null; disease_name?: string | null;
+  refusal_reason?: string | null; death_date?: string | null; follow_up_notes: string | null;
+  follow_up_date: string | null; last_follow_up: string | null; updated_by: string | null;
+  registration_number?: string | null; unit_code?: number | null; created_at?: string; updated_at?: string; unit?: Unit;
 }
-
-export interface Notification {
-  id: string;
-  child_id: string | null;
-  unit_id: string | null;
-  message: string;
-  type: string;
-  is_read: boolean;
-  created_at: string;
-  child?: DelayedChild;
-  unit?: Unit;
-}
-
-export interface User {
-  id: string;
-  role: 'admin' | 'unit_user';
-  unit_id?: string;
-  unit_name?: string;
-}
-
-export interface KPIs {
-  total: number;
-  vaccinated: number;
-  notVaccinated: number;
-  refused: number;
-  traveling: number;
-  documentedTravel: number;
-  sick: number;
-  transferred: number;
-  deceased: number;
-  phoneUnavailable: number;
-  phoneWrong: number;
-  completion: number;
-}
-
-export interface UnitStats {
-  unit_id: string;
-  unit_name: string;
-  total: number;
-  vaccinated: number;
-  remaining: number;
-  completion: number;
-}
+export interface Notification { id: string; child_id: string | null; unit_id: string | null; message: string; type: string; is_read: boolean; created_at: string; child?: DelayedChild; unit?: Unit; }
+export interface User { id: string; role: 'admin' | 'unit_user'; unit_id?: string; unit_name?: string; }
+export interface KPIs { total: number; vaccinated: number; notVaccinated: number; refused: number; traveling: number; documentedTravel: number; sick: number; transferred: number; deceased: number; phoneUnavailable: number; phoneWrong: number; completion: number; }
+export interface UnitStats { unit_id: string; unit_name: string; total: number; vaccinated: number; remaining: number; completion: number; }
