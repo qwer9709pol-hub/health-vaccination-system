@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './auth/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import LoginPage from './pages/LoginPage';
 import Layout from './pages/Layout';
 import AdminDashboard from './pages/AdminDashboard';
@@ -68,9 +69,11 @@ function App() {
   const handleLogin = () => setIsAuthenticated(true);
 
   return (
-    <AuthProvider>
-      {isAuthenticated ? <DashboardContent onLogout={() => setIsAuthenticated(false)} /> : <LoginPage onLogin={handleLogin} />}
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        {isAuthenticated ? <DashboardContent onLogout={() => setIsAuthenticated(false)} /> : <LoginPage onLogin={handleLogin} />}
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

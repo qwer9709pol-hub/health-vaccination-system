@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { BarChart3, TrendingUp, Award, AlertTriangle } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from 'recharts';
-import { DelayedChild, Unit, UnitStats, STATUS_OPTIONS, STATUS_CONFIG, ChildStatus } from '../types';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { DelayedChild, Unit, UnitStats, STATUS_OPTIONS, STATUS_CONFIG } from '../types';
 import { fetchChildren, fetchUnits, calculateUnitStats } from '../api/data';
 
 export default function AnalyticsPage() {
@@ -26,7 +26,6 @@ export default function AnalyticsPage() {
     return STATUS_OPTIONS.map((status) => ({
       name: STATUS_CONFIG[status].label,
       value: children.filter((c) => c.status === status).length,
-      color: STATUS_CONFIG[status].color.replace('text-', '').replace('-700', '-500'),
     })).filter((d) => d.value > 0);
   }, [children]);
 
@@ -38,12 +37,6 @@ export default function AnalyticsPage() {
 
   const topUnits = useMemo(() => unitStats.sort((a, b) => b.completion - a.completion).slice(0, 10), [unitStats]);
   const lowUnits = useMemo(() => unitStats.filter((u) => u.completion < 50 && u.total > 0), [unitStats]);
-
-  const colorMap: Record<string, string> = {
-    'orange': '#f59e0b', 'emerald': '#059669', 'blue': '#3b82f6', 'purple': '#8b5cf6',
-    'red': '#ef4444', 'gray': '#6b7280', 'yellow': '#eab308', 'amber': '#f59e0b',
-    'teal': '#14b8a6', 'slate': '#64748b',
-  };
 
   if (loading) {
     return (
@@ -81,7 +74,7 @@ export default function AnalyticsPage() {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie data={statusDistribution} cx="50%" cy="50%" innerRadius={70} outerRadius={100} dataKey="value" label={({ name, percent }) => `${name} (${((percent || 0) * 100).toFixed(0)}%)`}>
-                  {statusDistribution.map((entry, index) => (<Cell key={`cell-${index}`} fill={colorMap[entry.color] || '#6b7280'} />))}
+                  {statusDistribution.map((_, index) => (<Cell key={`cell-${index}`} fill={['#059669', '#f59e0b', '#ef4444', '#3b82f6', '#eab308', '#8b5cf6', '#14b8a6', '#6b7280'][index % 8]} />))}
                 </Pie>
                 <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px' }} />
               </PieChart>

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { UploadCloud, FileSpreadsheet, CheckCircle, XCircle, Loader2, Download } from 'lucide-react';
+import { UploadCloud, CheckCircle, XCircle, Loader2, Download } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { supabase } from '../lib/supabase';
 import { fetchUnits } from '../api/data';

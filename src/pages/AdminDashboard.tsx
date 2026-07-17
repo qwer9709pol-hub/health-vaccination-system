@@ -137,7 +137,7 @@ export default function AdminDashboard() {
         <KPICard title="رفض" value={kpis.refused} color="red" icon={<XCircle className="w-5 h-5" />} />
         <KPICard title="مسافر" value={kpis.traveling} color="blue" icon={<Plane className="w-5 h-5" />} />
         <KPICard title="مريض" value={kpis.sick} color="yellow" icon={<Heart className="w-5 h-5" />} />
-        <KPICard title="نسبة الإنجاز" value={kpis.completion} suffix="٪" color="emerald" icon={<TrendingUp className="w-5 h-5" />} />
+        <KPICard title="نسبة الإنجاز" value={kpis.completion} suffix="%" color="emerald" icon={<TrendingUp className="w-5 h-5" />} />
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -152,7 +152,7 @@ export default function AdminDashboard() {
           <AlertTriangle className="w-6 h-6 text-red-600 flex-shrink-0" />
           <div>
             <h3 className="font-semibold text-red-800 dark:text-red-300">وحدات تحتاج متابعة عاجلة</h3>
-            <p className="text-sm text-red-700 dark:text-red-400 mt-1">{lowPerformingUnits.map((u) => u.unit_name).join('، ')} - نسبة إنجاز أقل من 50٪</p>
+            <p className="text-sm text-red-700 dark:text-red-400 mt-1">{lowPerformingUnits.map((u) => u.unit_name).join('، ')} - نسبة إنجاز أقل من 50%</p>
           </div>
         </div>
       )}
@@ -178,7 +178,7 @@ export default function AdminDashboard() {
           <div className="h-64 flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={statusPieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} dataKey="value" label={({ name, percent }) => `${name} (${((percent || 0) * 100).toFixed(0)}٪)`}>
+                <Pie data={statusPieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} dataKey="value" label={({ name, percent }) => `${name} (${((percent || 0) * 100).toFixed(0)}%)`}>
                   {statusPieData.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.color} />))}
                 </Pie>
                 <Tooltip contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px' }} />
@@ -214,7 +214,7 @@ export default function AdminDashboard() {
                         <div className="w-20 h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
                           <div className={`h-full rounded-full ${stat.completion >= 70 ? 'bg-emerald-500' : stat.completion >= 40 ? 'bg-orange-500' : 'bg-red-500'}`} style={{ width: `${stat.completion}%` }} />
                         </div>
-                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{stat.completion}٪</span>
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{stat.completion}%</span>
                       </div>
                     </td>
                   </tr>

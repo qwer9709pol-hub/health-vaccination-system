@@ -46,6 +46,7 @@ export interface Unit {
   id: string;
   unit_name: string;
   unit_code?: number;
+  password?: string;
   created_at?: string;
 }
 

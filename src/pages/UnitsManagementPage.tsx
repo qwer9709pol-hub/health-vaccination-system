@@ -40,7 +40,7 @@ export default function UnitsManagementPage() {
         const { error } = await supabase.from('units').update(updates).eq('id', editingUnit.id);
         if (error) throw error;
       } else {
-        const newUnit: Record<string, unknown> = { unit_name: unitName.trim(), password: password || '123456' };
+        const newUnit: Record<string, unknown> = { unit_name: unitName.trim(), password: password || '2468' };
         if (unitCode) newUnit.unit_code = parseInt(unitCode);
         const { error } = await supabase.from('units').insert([newUnit]);
         if (error) throw error;
